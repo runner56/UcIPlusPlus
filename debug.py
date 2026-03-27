@@ -1,93 +1,62 @@
-# fix_all_progress.py
+# check_real_progress.py
 from app import app, db
-from models import ProgressModule, Module, User
+from models import User, Parent, ProgressModule, Module
 import json
 
 with app.app_context():
-    progresses = ProgressModule.query.all()
-    fixed_count = 0
+    parent = User.query.filter_by(username='parent').first()
+    if not parent:
+        print("Родитель не найден")
+        exit()
     
-    for progress in progresses:
-        user = User.query.get(progress.user_id)
-        module = Module.query.get(progress.module_id)
-        
-        if not module:
-            continue
-        
-        # Преобразуем
-        if isinstance(progress.progress, str):
-            try:
-                data = json.loads(progress.progress)
-            except:
-                data = {}
-        else:
-            data = progress.progress if progress.progress else {}
-        
-        if not isinstance(data, dict):
-            data = {}
-        
-        changed = False
-        
-        # Исправляем lessons
-        if 'lessons' not in data:
-            data['lessons'] = {}
-            changed = True
-        elif data['lessons'] is None:
-            data['lessons'] = {}
-            changed = True
-        
-        # Добавляем другие ключи
-        if 'percentage' not in data:
-            data['percentage'] = 0
-            changed = True
-        
-        if 'completed_lessons' not in data:
-            data['completed_lessons'] = []
-            changed = True
-        
-        if 'current_lesson' not in data:
-            data['current_lesson'] = None
-            changed = True
-        
-        # Добавляем все уроки модуля
-        for lesson in module.lessons_list:
-            lesson_key = str(lesson.id)
-            if lesson_key not in data['lessons']:
-                lesson_data = {
-                    'title': lesson.title,
-                    'completed': False,
-                    'started': False,
-                    'tests': {},
-                    'tasks': {},
-                    'theory_viewed': False
-                }
-                
-                for test in lesson.tests_list:
-                    lesson_data['tests'][str(test.id)] = {
-                        'title': test.title,
-                        'completed': False,
-                        'score': 0,
-                        'attempts': 0,
-                        'last_answer': None,
-                        'is_correct': False
-                    }
-                
-                for task in lesson.tasks_list:
-                    lesson_data['tasks'][str(task.id)] = {
-                        'title': task.title,
-                        'completed': False,
-                        'submitted': False,
-                        'score': 0
-                    }
-                
-                data['lessons'][lesson_key] = lesson_data
-                changed = True
-                print(f"  Добавлен урок {lesson.title} для {user.username}")
-        
-        if changed:
-            progress.progress = data
-            db.session.commit()
-            fixed_count += 1
-            print(f"✅ Исправлен прогресс для {user.username} (модуль {module.title})")
+    print(f"Родитель: {parent.username}\n")
     
-    print(f"\nВсего исправлено: {fixed_count} записей")
+    children = Parent.query.filter_by(id_parent=parent.id).all()
+    
+    for rel in children:
+        child = User.query.get(rel.id_child)
+        print(f"{'='*60}")
+        print(f"Ребенок: {child.username} (ID: {child.id})")
+        print(f"ITCoins: {child.itcoins}")
+        
+        for module in Module.query.all():
+            progress = ProgressModule.query.filter_by(
+                user_id=child.id,
+                module_id=module.id
+            ).first()
+            
+            print(f"\n  Модуль: {module.title}")
+            
+            if progress:
+                if isinstance(progress.progress, str):
+                    data = json.loads(progress.progress)
+                else:
+                    data = progress.progress if progress.progress else {}
+                
+                print(f"    Полные данные прогресса:")
+                print(f"    {json.dumps(data, ensure_ascii=False, indent=6)}")
+                
+                percent = data.get('percentage', 0)
+                completed_lessons = data.get('completed_lessons', [])
+                
+                print(f"\n    Процент: {percent}%")
+                print(f"    Пройденные уроки: {completed_lessons}")
+                
+                # Проверяем каждый урок
+                for lesson_id, lesson_data in data.get('lessons', {}).items():
+                    print(f"\n    Урок {lesson_id}: {lesson_data.get('title', '')}")
+                    print(f"      completed: {lesson_data.get('completed', False)}")
+                    print(f"      started: {lesson_data.get('started', False)}")
+                    print(f"      theory_viewed: {lesson_data.get('theory_viewed', False)}")
+                    
+                    # Тесты
+                    for test_id, test_data in lesson_data.get('tests', {}).items():
+                        print(f"      Тест {test_id}: completed={test_data.get('completed', False)}, is_correct={test_data.get('is_correct', False)}")
+                    
+                    # Задания
+                    for task_id, task_data in lesson_data.get('tasks', {}).items():
+                        print(f"      Задание {task_id}: completed={task_data.get('completed', False)}")
+            else:
+                print(f"    ❌ Нет прогресса")
+        
+        print()

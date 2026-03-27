@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}{{ child.username }} | Прогресс | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('parent_dashboard') }}">Родительский контроль</a></li>
+            <li class="breadcrumb-item active">{{ child.username }}</li>
+        </ol>
+    </nav>
+
+    <!-- Информация о ребенке -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <div class="d-flex align-items-center">
+                <img src="{{ url_for('static', filename=child.get_photo_url()) }}" 
+                     class="rounded-circle me-3" width="60" height="60"
+                     onerror="this.src='{{ url_for('static', filename='uploads/users/default_avatar.png') }}'">
+                <div>
+                    <h2 class="mb-0">{{ child.username }}</h2>
+                    <p class="text-muted mb-0">{{ child.email }}</p>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge bg-warning text-dark fs-5">
+                        <i class="fas fa-coins"></i> {{ child.itcoins }} ITCoins
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Общая статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ completed_tests }}/{{ total_tests }}</h2>
+                    <small>тестов пройдено</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ completed_tasks }}/{{ total_tasks }}</h2>
+                    <small>заданий выполнено</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">{{ completed_lessons }}/{{ total_lessons }}</h2>
+                    <small>уроков пройдено</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">
+                        {% if total_tests > 0 %}
+                            {{ (completed_tests / total_tests * 100)|int }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h2>
+                    <small>успеваемость</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Прогресс по модулям -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-book"></i> Прогресс по модулям</h5>
+        </div>
+        <div class="card-body">
+            {% for module_progress in modules_progress %}
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">{{ module_progress.module.title }}</h6>
+                    <span class="badge bg-{{ 'success' if module_progress.progress == 100 else 'primary' }}">
+                        {{ module_progress.progress }}%
+                    </span>
+                </div>
+                <div class="progress mb-2" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: {{ module_progress.progress }}%"></div>
+                </div>
+                <div class="row small text-muted">
+                    <div class="col-4">
+                        <i class="fas fa-tasks text-primary"></i>
+                        Тесты: {{ module_progress.completed_tests }}/{{ module_progress.total_tests }}
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-code text-success"></i>
+                        Задания: {{ module_progress.completed_tasks }}/{{ module_progress.total_tasks }}
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-book-open text-info"></i>
+                        Уроки: {{ module_progress.completed_lessons }}/{{ module_progress.total_lessons }}
+                    </div>
+                </div>
+                
+                <!-- Детали по урокам -->
+                {% if module_progress.progress_data %}
+                <button class="btn btn-sm btn-outline-secondary mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#module{{ loop.index }}">
+                    <i class="fas fa-chevron-down"></i> Подробнее
+                </button>
+                <div class="collapse mt-2" id="module{{ loop.index }}">
+                    <div class="card card-body bg-light">
+                        {% for lesson_id, lesson_data in module_progress.progress_data.get('lessons', {}).items() %}
+                        <div class="mb-2">
+                            <strong>{{ lesson_data.get('title', 'Урок ' + lesson_id) }}</strong>
+                            <div class="small">
+                                <span class="badge bg-{{ 'success' if lesson_data.get('theory_viewed', false) else 'secondary' }} me-1">
+                                    <i class="fas fa-book-open"></i> Теория
+                                </span>
+                                {% for test_id, test_data in lesson_data.get('tests', {}).items() %}
+                                <span class="badge bg-{{ 'success' if test_data.get('completed', false) else 'secondary' }} me-1">
+                                    <i class="fas fa-tasks"></i> {{ test_data.get('title', 'Тест') }}
+                                    {% if test_data.get('completed', false) %}✅{% endif %}
+                                </span>
+                                {% endfor %}
+                                {% for task_id, task_data in lesson_data.get('tasks', {}).items() %}
+                                <span class="badge bg-{{ 'success' if task_data.get('completed', false) else 'secondary' }} me-1">
+                                    <i class="fas fa-code"></i> {{ task_data.get('title', 'Задание') }}
+                                    {% if task_data.get('completed', false) %}✅{% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Результаты тестов (уникальные) -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-tasks"></i> Результаты тестов (последние попытки)</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if test_results %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Тест</th>
+                            <th>Урок</th>
+                            <th>Ответ</th>
+                            <th>Результат</th>
+                            <th>Дата</th>
+                        </thead>
+                    <tbody>
+                        {% for result in test_results %}
+                        <tr>
+                            <td>{{ result.test.title if result.test else 'Тест' }}</td>
+                            <td>{{ result.lesson.title if result.lesson else 'Урок' }}</td>
+                            <td>{{ result.answer[:50] }}{% if result.answer|length > 50 %}...{% endif %}</td>
+                            <td>
+                                {% set is_correct = result.answer == result.test.answer if result.test else false %}
+                                <span class="badge bg-{{ 'success' if is_correct else 'danger' }}">
+                                    {{ 'Правильно' if is_correct else 'Неправильно' }}
+                                </span>
+                            </td>
+                            <td>{{ result.date.strftime('%d.%m.%Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
+                <p>Нет результатов тестов</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        transition: width 0.5s ease;
+    }
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+</style>
+{% endblock %}

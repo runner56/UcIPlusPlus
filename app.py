@@ -322,6 +322,42 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
+def sync_user_chats(user):
+    """Синхронизирует чаты пользователя со всеми группами, где он состоит"""
+    from models import Group, GroupStudent, Chat
+    
+    print(f"Синхронизация чатов для {user.username}...")
+    
+    # Находим все группы через таблицу group_students
+    groups = db.session.query(Group).join(GroupStudent).filter(GroupStudent.student_id == user.id).all()
+    print(f"  Найдено групп: {len(groups)}")
+    
+    for group in groups:
+        print(f"  Группа: {group.title}")
+        chat = Chat.query.filter_by(group_id=group.id).first()
+        
+        if chat:
+            if chat.users is None:
+                chat.users = []
+            if user.id not in chat.users:
+                chat.users.append(user.id)
+                print(f"    ✅ Добавлен в чат")
+            else:
+                print(f"    ⏭️ Уже в чате")
+        else:
+            # Создаем чат, если его нет
+            chat = Chat(
+                group_id=group.id,
+                admin_id=group.created_by,
+                title=f"Чат: {group.title}",
+                users=[user.id, group.created_by]
+            )
+            db.session.add(chat)
+            print(f"    ✅ Создан новый чат и добавлен пользователь")
+    
+    db.session.commit()
+    print(f"Синхронизация завершена")
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -332,6 +368,10 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data) and user.is_active:
             login_user(user, remember=form.remember.data)
+            
+            # Синхронизируем чаты
+            sync_user_chats(user)
+            
             next_page = request.args.get('next')
             flash(f'Добро пожаловать, {user.username}!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
@@ -339,6 +379,8 @@ def login():
             flash('Неверный email или пароль', 'danger')
     
     return render_template('auth/login.html', form=form)
+
+
 
 
 @app.route('/logout')
@@ -1795,29 +1837,78 @@ def debug_progress():
 # ============================================================
 # РОДИТЕЛЬ МАРШРУТЫ
 # ============================================================
+# ============================================================
+# РОДИТЕЛЬ МАРШРУТЫ
+# ============================================================
 @app.route('/parent/dashboard')
 @login_required
 @role_required('parent')
 def parent_dashboard():
-    children = Parent.query.filter_by(id_parent=current_user.id).all()
+    import json
+    
+    children_relations = Parent.query.filter_by(id_parent=current_user.id).all()
     children_data = []
     
-    for rel in children:
+    for rel in children_relations:
         child = User.query.get(rel.id_child)
         if child:
             modules_progress = []
+            total_percent = 0
+            total_completed_tests = 0
+            total_tests_count = 0
+            
             for module in Module.query.all():
                 progress = ProgressModule.query.filter_by(
-                    user_id=child.id, 
+                    user_id=child.id,
                     module_id=module.id
                 ).first()
+                
+                module_percent = 0
+                module_completed_tests = 0
+                module_tests_count = 0
+                
+                if progress:
+                    # Получаем данные
+                    if isinstance(progress.progress, str):
+                        try:
+                            progress_data = json.loads(progress.progress)
+                        except:
+                            progress_data = {}
+                    else:
+                        progress_data = progress.progress if progress.progress else {}
+                    
+                    # Считаем пройденные тесты
+                    for lesson_data in progress_data.get('lessons', {}).values():
+                        for test_data in lesson_data.get('tests', {}).values():
+                            module_tests_count += 1
+                            if test_data.get('completed', False):
+                                module_completed_tests += 1
+                                total_completed_tests += 1
+                                total_tests_count += 1
+                            else:
+                                total_tests_count += 1
+                    
+                    # Прогресс модуля = процент пройденных тестов
+                    if module_tests_count > 0:
+                        module_percent = int((module_completed_tests / module_tests_count) * 100)
+                    total_percent += module_percent
+                
                 modules_progress.append({
                     'module': module,
-                    'progress': progress.progress.get('percentage', 0) if progress else 0
+                    'progress': module_percent
                 })
+            
+            module_count = Module.query.count()
+            avg_progress = int(total_percent / module_count) if module_count > 0 else 0
             
             children_data.append({
                 'child': child,
+                'total_progress': avg_progress,
+                'completed_lessons': total_completed_tests,  # показываем пройденные тесты
+                'completed_tests': total_completed_tests,
+                'total_tests': total_tests_count,
+                'itcoins': child.itcoins,
+                'streak_days': getattr(child, 'streak_days', 0),
                 'modules_progress': modules_progress
             })
     
@@ -1828,6 +1919,9 @@ def parent_dashboard():
 @login_required
 @role_required('parent')
 def parent_child_progress(child_id):
+    import json
+    
+    # Проверяем, что ребенок принадлежит родителю
     relation = Parent.query.filter_by(id_parent=current_user.id, id_child=child_id).first()
     if not relation:
         flash('У вас нет доступа к этому ребенку', 'danger')
@@ -1835,24 +1929,134 @@ def parent_child_progress(child_id):
     
     child = User.query.get_or_404(child_id)
     
+    # Получаем прогресс по модулям
     modules_progress = []
+    total_lessons = 0
+    completed_lessons = 0
+    total_tests = 0
+    completed_tests = 0
+    total_tasks = 0
+    completed_tasks = 0
+    
     for module in Module.query.all():
         progress = ProgressModule.query.filter_by(
-            user_id=child.id, 
+            user_id=child.id,
             module_id=module.id
         ).first()
-        modules_progress.append({
-            'module': module,
-            'progress': progress.progress.get('percentage', 0) if progress else 0,
-            'completed_lessons': progress.progress.get('completed_lessons', []) if progress else []
-        })
+        
+        module_completed_tests = 0
+        module_total_tests = 0
+        module_completed_tasks = 0
+        module_total_tasks = 0
+        module_completed_lessons = 0
+        module_total_lessons = len(module.lessons_list)
+        module_percent = 0
+        
+        if progress:
+            # Преобразуем строку в словарь
+            if isinstance(progress.progress, str):
+                try:
+                    progress_data = json.loads(progress.progress)
+                except:
+                    progress_data = {}
+            else:
+                progress_data = progress.progress if progress.progress else {}
+            
+            # Считаем пройденные тесты
+            for lesson_data in progress_data.get('lessons', {}).values():
+                for test_data in lesson_data.get('tests', {}).values():
+                    module_total_tests += 1
+                    total_tests += 1
+                    if test_data.get('completed', False):
+                        module_completed_tests += 1
+                        completed_tests += 1
+                
+                for task_data in lesson_data.get('tasks', {}).values():
+                    module_total_tasks += 1
+                    total_tasks += 1
+                    if task_data.get('completed', False):
+                        module_completed_tasks += 1
+                        completed_tasks += 1
+            
+            # Считаем пройденные уроки
+            module_completed_lessons = len(progress_data.get('completed_lessons', []))
+            completed_lessons += module_completed_lessons
+            total_lessons += module_total_lessons
+            
+            # Прогресс модуля = процент пройденных тестов
+            if module_total_tests > 0:
+                module_percent = int((module_completed_tests / module_total_tests) * 100)
+            
+            modules_progress.append({
+                'module': module,
+                'progress': module_percent,
+                'completed_lessons': module_completed_lessons,
+                'total_lessons': module_total_lessons,
+                'completed_tests': module_completed_tests,
+                'total_tests': module_total_tests,
+                'completed_tasks': module_completed_tasks,
+                'total_tasks': module_total_tasks,
+                'progress_data': progress_data
+            })
+        else:
+            modules_progress.append({
+                'module': module,
+                'progress': 0,
+                'completed_lessons': 0,
+                'total_lessons': module_total_lessons,
+                'completed_tests': 0,
+                'total_tests': 0,
+                'completed_tasks': 0,
+                'total_tasks': 0,
+                'progress_data': {}
+            })
     
-    test_results = TestResult.query.filter_by(user_id=child.id).all()
+    # Получаем результаты тестов (уникальные, без дубликатов)
+    test_results = TestResult.query.filter_by(user_id=child.id).order_by(TestResult.date.desc()).all()
     
-    return render_template('parent/child_progress.html', 
-                         child=child, 
+    # Удаляем дубликаты (оставляем последнюю попытку для каждого теста)
+    unique_results = {}
+    for result in test_results:
+        key = result.test_id
+        if key not in unique_results:
+            unique_results[key] = result
+    
+    unique_results_list = list(unique_results.values())
+    
+    # Для каждого результата подгружаем название теста и урока
+    for result in unique_results_list:
+        result.test = Test.query.get(result.test_id)
+        if result.test:
+            result.lesson = Lesson.query.get(result.test.lesson_id)
+    
+    return render_template('parent/child_progress.html',
+                         child=child,
                          modules_progress=modules_progress,
-                         test_results=test_results)
+                         test_results=unique_results_list,
+                         total_lessons=total_lessons,
+                         completed_lessons=completed_lessons,
+                         total_tests=total_tests,
+                         completed_tests=completed_tests,
+                         total_tasks=total_tasks,
+                         completed_tasks=completed_tasks)
+
+
+@app.route('/parent/child/<int:child_id>/send_report', methods=['POST'])
+@login_required
+@role_required('parent')
+def parent_send_report(child_id):
+    """Отправка отчета о прогрессе на email"""
+    relation = Parent.query.filter_by(id_parent=current_user.id, id_child=child_id).first()
+    if not relation:
+        return {'success': False}, 403
+    
+    child = User.query.get_or_404(child_id)
+    
+    # Здесь можно отправить email с отчетом
+    # Пока просто возвращаем успех
+    print(f"Отчет отправлен для {child.username} на {current_user.email}")
+    
+    return {'success': True}
 
 
 # ============================================================
@@ -1861,8 +2065,12 @@ def parent_child_progress(child_id):
 @app.route('/chat')
 @login_required
 def chat_index():
-    user_id_str = str(current_user.id)
+    """Список чатов пользователя"""
+    user_id = current_user.id
+    user_id_str = str(user_id)
     
+    # Ищем чаты, где users содержит ID пользователя
+    # SQLite: используем LIKE для поиска в JSON
     chats = Chat.query.filter(
         Chat.users.cast(db.String).like(f'%{user_id_str}%')
     ).all()

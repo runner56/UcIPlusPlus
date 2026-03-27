@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Родительский контроль | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-child text-primary"></i> Родительский контроль
+            </h1>
+            <p class="text-muted">Отслеживайте прогресс обучения ваших детей</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-success fs-6">
+                <i class="fas fa-calendar-alt"></i> {{ now.strftime('%d.%m.%Y') }}
+            </span>
+        </div>
+    </div>
+
+    {% if children_data %}
+    <div class="row">
+        {% for child_info in children_data %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename=child_info.child.get_photo_url()) }}" 
+                             class="rounded-circle me-3" width="50" height="50"
+                             onerror="this.src='{{ url_for('static', filename='uploads/users/default_avatar.png') }}'">
+                        <div>
+                            <h4 class="mb-0">{{ child_info.child.username }}</h4>
+                            <small class="text-muted">
+                                <i class="fas fa-envelope"></i> {{ child_info.child.email }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Общий прогресс (по тестам) -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Общий прогресс</span>
+                            <span class="fw-bold">{{ child_info.total_progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" style="width: {{ child_info.total_progress }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Статистика -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="h4 text-primary">{{ child_info.completed_tests }}/{{ child_info.total_tests }}</div>
+                            <small class="text-muted">тестов пройдено</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-success">{{ child_info.itcoins }}</div>
+                            <small class="text-muted">ITCoins</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 text-warning">{{ (child_info.completed_tests / child_info.total_tests * 100)|int if child_info.total_tests > 0 else 0 }}%</div>
+                            <small class="text-muted">успеваемость</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Прогресс по модулям -->
+                    <h6 class="mb-2">Прогресс по модулям:</h6>
+                    {% for module_progress in child_info.modules_progress %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small">
+                            <span>{{ module_progress.module.title }}</span>
+                            <span>{{ module_progress.progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-info" style="width: {{ module_progress.progress }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('parent_child_progress', child_id=child_info.child.id) }}" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> Детальный отчет
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="sendReport({{ child_info.child.id }})">
+                            <i class="fas fa-envelope"></i> Отправить отчет на email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-child fa-4x text-muted mb-3"></i>
+            <h5>У вас пока нет привязанных детей</h5>
+            <p class="text-muted">Добавьте ребенка, указав его email в настройках профиля</p>
+            <a href="{{ url_for('profile') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Привязать ребенка
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function sendReport(childId) {
+        if (confirm('Отправить отчет о прогрессе на email?')) {
+            fetch(`/parent/child/${childId}/send_report`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Отчет отправлен на email!');
+                    } else {
+                        alert('Ошибка при отправке отчета');
+                    }
+                });
+        }
+    }
+</script>
+{% endblock %}
