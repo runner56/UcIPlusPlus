@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}CodeQuest | Учись программировать играя!{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    
+    <div class="floating-code" style="top: 10%; left: 5%;">print('Hello, World!')</div>
+    <div class="floating-code" style="top: 20%; right: 8%;">def learn():</div>
+    <div class="floating-code" style="bottom: 15%; left: 10%;">for i in range(10):</div>
+    <div class="floating-code" style="bottom: 25%; right: 12%;">while True:</div>
+    <div class="floating-code" style="top: 50%; left: 15%;">import pygame</div>
+    <div class="floating-code" style="top: 70%; right: 5%;">class Game:</div>
+    
+    <div class="container hero-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="code-badge fade-in">
+                    <i class="fas fa-code"></i> learn to code | play to learn
+                </div>
+                <h1 class="hero-title fade-in delay-1">
+                    Учись программировать<br>играя с CodeQuest!
+                </h1>
+                <p class="hero-subtitle fade-in delay-2">
+                    Интерактивные уроки, увлекательные игры и настоящие IT-приключения<br>
+                    для школьников 7–15 лет
+                </p>
+                {% if not current_user.is_authenticated %}
+                <div class="mt-4 fade-in delay-3">
+                    <a href="{{ url_for('register') }}" class="btn-glow btn-primary-glow">
+                        <i class="fas fa-rocket"></i> Начать учиться бесплатно
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn-glow btn-outline-glow">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </a>
+                </div>
+                {% else %}
+                <div class="mt-4 fade-in delay-3">
+                    <a href="{{ url_for('dashboard') }}" class="btn-glow btn-primary-glow">
+                        <i class="fas fa-arrow-right"></i> Продолжить обучение
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Почему CodeQuest?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3 class="feature-title">Игровые механики</h3>
+                    <p class="feature-description">Учимся через игры, головоломки и интерактивные задания. Каждый урок — новое приключение!</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">Понятная теория</h3>
+                    <p class="feature-description">Сложные концепции объясняем простым языком с яркими примерами и визуализациями</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3 class="feature-title">Система достижений</h3>
+                    <p class="feature-description">Зарабатывай ITCoins, получай награды и соревнуйся с друзьями в таблице лидеров</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍👩‍👧</div>
+                    <h3 class="feature-title">Родительский контроль</h3>
+                    <p class="feature-description">Отслеживайте прогресс ребенка, устанавливайте ограничения и получайте еженедельные отчеты</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">Чат с друзьями</h3>
+                    <p class="feature-description">Общайся с другими учениками, задавай вопросы и делись успехами в общих чатах</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Практические проекты</h3>
+                    <p class="feature-description">Создавай настоящие игры и приложения с нуля под руководством опытных наставников</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Courses -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title">Популярные курсы</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="course-card">
+                    <div class="course-img">🐍</div>
+                    <div class="p-4">
+                        <h3 class="course-title">Python для начинающих</h3>
+                        <p class="text-muted">Изучи самый популярный язык программирования. Создавай игры, рисовалки и полезные программы.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">7–10 лет</span>
+                            <span class="text-warning">⭐ 4.9</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="course-card">
+                    <div class="course-img">🌐</div>
+                    <div class="p-4">
+                        <h3 class="course-title">Веб-разработка</h3>
+                        <p class="text-muted">Создавай сайты и веб-приложения. Изучи HTML, CSS и JavaScript на практике.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">10–14 лет</span>
+                            <span class="text-warning">⭐ 4.8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="course-card">
+                    <div class="course-img">🤖</div>
+                    <div class="p-4">
+                        <h3 class="course-title">Основы AI и нейросетей</h3>
+                        <p class="text-muted">Познакомься с искусственным интеллектом, создавай умные программы и чат-ботов.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">12–15 лет</span>
+                            <span class="text-warning">⭐ 4.9</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Партнеры -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title">Наши партнеры</h2>
+        <div class="row g-4 align-items-center justify-content-center">
+            <div class="col-md-3 col-sm-6">
+                <div class="partner-card">
+                    <div class="cube-container">
+                        <!-- Передняя грань (логотип) -->
+                        <div class="cube-front">
+                            <div class="partner-logo-wrapper">
+                                <img src="{{ url_for('static', filename='img/partners/1.jpg') }}" 
+                                     alt="ТехноЛаб"
+                                     class="partner-logo"
+                                     onerror="this.src='{{ url_for('static', filename='img/partners/placeholder.png') }}'">
+                            </div>
+                            <h5 class="partner-name">ТехноЛаб</h5>
+                            <small>Технологический партнер</small>
+                        </div>
+                        <!-- Задняя грань (информация) -->
+                        <div class="cube-back">
+                            <div class="partner-info">
+                                <div class="partner-icon">🚀</div>
+                                <h5>ТехноЛаб</h5>
+                                <p class="partner-description">
+                                    Инновационные решения в сфере IT-технологий. Помогаем молодым разработчикам находить свой путь.
+                                </p>
+                                <a href="#" class="partner-link">Узнать больше →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="partner-card">
+                    <div class="cube-container">
+                        <div class="cube-front">
+                            <div class="partner-logo-wrapper">
+                                <img src="{{ url_for('static', filename='img/partners/2.jpg') }}" 
+                                     alt="Образование+"
+                                     class="partner-logo"
+                                     onerror="this.src='{{ url_for('static', filename='img/partners/placeholder.png') }}'">
+                            </div>
+                            <h5 class="partner-name">Образование+</h5>
+                            <small>Образовательный партнер</small>
+                        </div>
+                        <div class="cube-back">
+                            <div class="partner-info">
+                                <div class="partner-icon">📚</div>
+                                <h5>Образование+</h5>
+                                <p class="partner-description">
+                                    Современные методики обучения. Делаем образование доступным и увлекательным для каждого ребенка.
+                                </p>
+                                <a href="#" class="partner-link">Узнать больше →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="partner-card">
+                    <div class="cube-container">
+                        <div class="cube-front">
+                            <div class="partner-logo-wrapper">
+                                <img src="{{ url_for('static', filename='img/partners/3.jpg') }}" 
+                                     alt="IT Академия"
+                                     class="partner-logo"
+                                     onerror="this.src='{{ url_for('static', filename='img/partners/placeholder.png') }}'">
+                            </div>
+                            <h5 class="partner-name">IT Академия</h5>
+                            <small>IT-партнер</small>
+                        </div>
+                        <div class="cube-back">
+                            <div class="partner-info">
+                                <div class="partner-icon">💻</div>
+                                <h5>IT Академия</h5>
+                                <p class="partner-description">
+                                    Подготовка IT-специалистов мирового уровня. Наставничество и карьерное сопровождение.
+                                </p>
+                                <a href="#" class="partner-link">Узнать больше →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="partner-card">
+                    <div class="cube-container">
+                        <div class="cube-front">
+                            <div class="partner-logo-wrapper">
+                                <img src="{{ url_for('static', filename='img/partners/4.png') }}" 
+                                     alt="СтартТех"
+                                     class="partner-logo"
+                                     onerror="this.src='{{ url_for('static', filename='img/partners/placeholder.png') }}'">
+                            </div>
+                            <h5 class="partner-name">СтартТех</h5>
+                            <small>Стратегический партнер</small>
+                        </div>
+                        <div class="cube-back">
+                            <div class="partner-info">
+                                <div class="partner-icon">⭐</div>
+                                <h5>СтартТех</h5>
+                                <p class="partner-description">
+                                    Стартап-акселератор и венчурный фонд. Помогаем молодым проектам вырасти в успешный бизнес.
+                                </p>
+                                <a href="#" class="partner-link">Узнать больше →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="5000">5000+</div>
+                    <div class="stat-label">Учеников</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="150">150+</div>
+                    <div class="stat-label">Интерактивных уроков</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="50">50+</div>
+                    <div class="stat-label">Мини-игр</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-number" data-count="98">98%</div>
+                    <div class="stat-label">Довольных учеников</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title">Что говорят наши ученики</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="testimonial-text">
+                        "Раньше думал, что программирование — это скучно. А тут такие крутые игры! Теперь сам создаю свои мини-игры!"
+                    </div>
+                    <div class="fw-bold">Максим, 12 лет</div>
+                    <div class="text-muted small">Ученик школы №15</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="testimonial-text">
+                        "Мне нравится, что можно учиться в своем темпе. А за задания дают ITCoins, на которые можно покупать крутые награды!"
+                    </div>
+                    <div class="fw-bold">Алиса, 10 лет</div>
+                    <div class="text-muted small">Ученица лицея №7</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="testimonial-text">
+                        "Спасибо за родительский контроль! Вижу, как сын прогрессирует, какие темы проходит. Очень удобно!"
+                    </div>
+                    <div class="fw-bold">Елена, мама Артема</div>
+                    <div class="text-muted small">Родитель ученика</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="cta-title">Готов начать свое IT-путешествие?</h2>
+                <p class="cta-text">Присоединяйся к CodeQuest уже сегодня — первый урок бесплатно!</p>
+                {% if not current_user.is_authenticated %}
+                <div class="cta-buttons">
+                    <a href="{{ url_for('register') }}" class="btn-glow btn-primary-glow">
+                        <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn-glow btn-outline-glow">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </a>
+                </div>
+                {% else %}
+                <div class="cta-buttons">
+                    <a href="{{ url_for('dashboard') }}" class="btn-glow btn-primary-glow">
+                        <i class="fas fa-arrow-right"></i> Продолжить обучение
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- University Badge -->
+<a href="#" class="university-badge" style="text-decoration: none;">
+    <span class="badge-icon">🎓</span>
+    <strong>University College OSU</strong> | Team i++ 
+    <span style="margin-left: 5px;">⚡</span>
+</a>
+{% endblock %}

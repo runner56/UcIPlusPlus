@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Мой профиль | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Карточка профиля -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" class="rounded-circle"
+                            width="120" height="120">
+                        <button class="btn btn-sm btn-light rounded-circle position-absolute bottom-0 end-0"
+                            data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <h3>{{ current_user.username }}</h3>
+                    <p class="text-muted">
+                        <i class="fas fa-envelope"></i> {{ current_user.email }}
+                    </p>
+                    <div class="mb-3">
+                        <span
+                            class="badge bg-{{ 'danger' if current_user.role == 'admin' else 'primary' if current_user.role == 'teacher' else 'success' if current_user.role == 'student' else 'info' }} fs-6">
+                            <i
+                                class="fas fa-{{ 'user-shield' if current_user.role == 'admin' else 'chalkboard-user' if current_user.role == 'teacher' else 'user-graduate' if current_user.role == 'student' else 'child' }}"></i>
+                            {{ {'admin': 'Администратор', 'teacher': 'Учитель', 'student': 'Ученик', 'parent':
+                            'Родитель'}[current_user.role] }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-center gap-3 mb-3">
+                        <div class="text-center">
+                            <div class="h4 mb-0">{{ current_user.itcoins }}</div>
+                            <small class="text-muted">ITCoins</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="h4 mb-0">{{ current_user.created_at.strftime('%d.%m.%Y') }}</div>
+                            <small class="text-muted">На сайте с</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary w-100" data-bs-toggle="modal"
+                        data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit"></i> Редактировать профиль
+                    </button>
+                </div>
+            </div>
+
+            <!-- Статистика (для учеников) -->
+            {% if current_user.role == 'student' %}
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Моя статистика</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Пройдено уроков</span>
+                            <span class="fw-bold">{{ stats.completed_lessons }}/{{ stats.total_lessons }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success"
+                                style="width: {{ (stats.completed_lessons / stats.total_lessons * 100) if stats.total_lessons > 0 else 0 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Пройдено тестов</span>
+                            <span class="fw-bold">{{ stats.completed_tests }}/{{ stats.total_tests }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info"
+                                style="width: {{ (stats.completed_tests / stats.total_tests * 100) if stats.total_tests > 0 else 0 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Выполнено заданий</span>
+                            <span class="fw-bold">{{ stats.completed_tasks }}/{{ stats.total_tasks }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning"
+                                style="width: {{ (stats.completed_tasks / stats.total_tasks * 100) if stats.total_tasks > 0 else 0 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <div class="h2 text-warning">{{ current_user.itcoins }}</div>
+                        <small class="text-muted">Всего ITCoins</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Статистика для учителя -->
+            {% if current_user.role == 'teacher' %}
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chalkboard"></i> Мои группы</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="h2 text-primary">{{ teacher_stats.groups_count }}</div>
+                        <small class="text-muted">всего групп</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="h2 text-success">{{ teacher_stats.students_count }}</div>
+                        <small class="text-muted">всего учеников</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Статистика для родителя -->
+            {% if current_user.role == 'parent' %}
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-child"></i> Мои дети</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="h2 text-info">{{ parent_stats.children_count }}</div>
+                        <small class="text-muted">всего детей</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Настройки профиля -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Настройки профиля</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_profile') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Имя пользователя</label>
+                            <input type="text" name="username" class="form-control" value="{{ current_user.username }}"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ current_user.email }}"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Новый пароль (оставьте пустым, если не хотите менять)</label>
+                            <input type="password" name="new_password" class="form-control"
+                                placeholder="Введите новый пароль">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Подтверждение пароля</label>
+                            <input type="password" name="confirm_password" class="form-control"
+                                placeholder="Подтвердите новый пароль">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Сохранить изменения
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Последняя активность -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Последняя активность</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activity %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-{{ activity.icon }} me-2 text-{{ activity.color }}"></i>
+                                    <strong>{{ activity.title }}</strong>
+                                    <p class="text-muted small mb-0">{{ activity.description }}</p>
+                                </div>
+                                <small class="text-muted">{{ activity.date.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Нет недавней активности</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-primary">
+                            Начать обучение
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно изменения фото -->
+<div class="modal fade" id="changePhotoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-camera"></i> Изменить фото профиля</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('update_photo') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img id="preview"
+                            src="{{ current_user.photo or url_for('static', filename='images/default_avatar.png') }}"
+                            class="rounded-circle" width="150" height="150" style="object-fit: cover;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Выберите новое фото</label>
+                        <input type="file" name="photo" class="form-control" accept="image/*"
+                            onchange="previewImage(this)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования профиля -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Редактировать профиль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('update_profile') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" name="username" class="form-control" value="{{ current_user.username }}"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль</label>
+                        <input type="password" name="new_password" class="form-control"
+                            placeholder="Оставьте пустым, если не хотите менять">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Подтверждение пароля</label>
+                        <input type="password" name="confirm_password" class="form-control"
+                            placeholder="Подтвердите новый пароль">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module.title }} | Управление уроками | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_modules') }}">Модули</a></li>
+            <li class="breadcrumb-item active">{{ module.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Информация о модуле -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-{{ module.icon|default('book') }} fa-3x text-primary"></i>
+                </div>
+                <div>
+                    <h1 class="h2 mb-0">{{ module.title }}</h1>
+                    <p class="text-muted mt-2">{{ module.description or 'Нет описания' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <a href="{{ url_for('admin_modules') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLessonModal">
+                    <i class="fas fa-plus-circle"></i> Создать урок
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Всего уроков</h6>
+                            <h2 class="mb-0">{{ lessons|length }}</h2>
+                        </div>
+                        <i class="fas fa-book fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Всего тестов</h6>
+                            <h2 class="mb-0">{{ total_tests|default(0) }}</h2>
+                        </div>
+                        <i class="fas fa-tasks fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Всего заданий</h6>
+                            <h2 class="mb-0">{{ total_tasks|default(0) }}</h2>
+                        </div>
+                        <i class="fas fa-code fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Уроки модуля</h5>
+        </div>
+        <div class="card-body">
+            {% if lessons %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px">#</th>
+                            <th>Название урока</th>
+                            <th>Содержание</th>
+                            <th>Теория</th>
+                            <th>Тесты</th>
+                            <th>Задания</th>
+                            <th style="width: 120px">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lesson in lessons %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <strong>{{ lesson.title }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ lesson.content[:50] }}{% if lesson.content and lesson.content|length > 50 %}...{% endif %}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if lesson.theory_list|length > 0 else 'secondary' }}">
+                                    {{ lesson.theory_list|length }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if lesson.tests_list|length > 0 else 'secondary' }}">
+                                    {{ lesson.tests_list|length }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if lesson.tasks_list|length > 0 else 'secondary' }}">
+                                    {{ lesson.tasks_list|length }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('admin_lesson_detail', lesson_id=lesson.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-outline-secondary" onclick="editLesson({{ lesson.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteLesson({{ lesson.id }}, '{{ lesson.title }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                <h5>В этом модуле пока нет уроков</h5>
+                <p class="text-muted">Создайте первый урок, чтобы начать наполнение</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLessonModal">
+                    <i class="fas fa-plus-circle"></i> Создать первый урок
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания урока -->
+<div class="modal fade" id="createLessonModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Создание урока</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_create_lesson', module_id=module.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название урока *</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Например: Введение в Python">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Содержание урока</label>
+                        <textarea name="content" class="form-control tinymce-editor" rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать урок</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования урока -->
+<div class="modal fade" id="editLessonModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Редактирование урока</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editLessonForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название урока *</label>
+                        <input type="text" name="title" id="edit_lesson_title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Содержание урока</label>
+                        <textarea name="content" id="edit_lesson_content" class="form-control tinymce-editor" rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editLesson(lessonId) {
+        fetch(`/admin/lesson/${lessonId}/data`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('edit_lesson_title').value = data.title;
+                document.getElementById('edit_lesson_content').value = data.content || '';
+                document.getElementById('editLessonForm').action = `/admin/lesson/${lessonId}/edit`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editLessonModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка загрузки данных урока');
+            });
+    }
+    
+    function deleteLesson(lessonId, lessonTitle) {
+        if (confirm(`Вы уверены, что хотите удалить урок "${lessonTitle}"?\n\nВся теория, тесты и задания внутри урока также будут удалены!`)) {
+            window.location.href = `/admin/lesson/${lessonId}/delete`;
+        }
+    }
+</script>
+{% endblock %}

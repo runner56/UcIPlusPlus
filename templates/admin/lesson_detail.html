@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} | Управление уроком | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_modules') }}">Модули</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_module_detail', module_id=lesson.module_id) }}">{{ lesson.parent_module.title }}</a></li>
+            <li class="breadcrumb-item active">{{ lesson.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-chalkboard-teacher text-primary"></i> {{ lesson.title }}
+            </h1>
+            <p class="text-muted mt-2">Управление содержимым урока</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin_module_detail', module_id=lesson.module_id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к модулю
+            </a>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <ul class="nav nav-tabs mb-4" id="lessonTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="theory-tab" data-bs-toggle="tab" data-bs-target="#theory" type="button" role="tab">
+                <i class="fas fa-book-open"></i> Теория ({{ theory|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests" type="button" role="tab">
+                <i class="fas fa-tasks"></i> Тесты ({{ tests|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
+                <i class="fas fa-code"></i> Задания ({{ tasks|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- ==================== ТЕОРИЯ ==================== -->
+        <div class="tab-pane fade show active" id="theory" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-book-open"></i> Теоретические материалы</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTheoryModal">
+                        <i class="fas fa-plus-circle"></i> Добавить теорию
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if theory %}
+                    <div class="list-group list-group-flush">
+                        {% for item in theory %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ item.title }}</h6>
+                                    <p class="text-muted small mb-1">{{ item.content[:100] }}{% if item.content|length > 100 %}...{% endif %}</p>
+                                    {% if item.image %}
+                                    <small class="text-muted"><i class="fas fa-image"></i> {{ item.image }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary" onclick="editTheory({{ item.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteTheory({{ item.id }}, '{{ item.title }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                        <p>Нет теоретических материалов</p>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTheoryModal">
+                            <i class="fas fa-plus-circle"></i> Добавить первый материал
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ТЕСТЫ ==================== -->
+        <div class="tab-pane fade" id="tests" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Тесты и вопросы</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTestModal">
+                        <i class="fas fa-plus-circle"></i> Создать тест
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if tests %}
+                    <div class="accordion" id="testsAccordion">
+                        {% for test in tests %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#test{{ test.id }}">
+                                    <div class="d-flex justify-content-between w-100 me-3">
+                                        <span><strong>{{ test.title }}</strong></span>
+                                        <span class="badge bg-{{ 'primary' if test.type == 'single' else 'success' if test.type == 'multiple' else 'warning' }} ms-2">
+                                            {{ {'single': 'Один ответ', 'multiple': 'Несколько ответов', 'text': 'Свободный ответ'}[test.type] }}
+                                        </span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="test{{ test.id }}" class="accordion-collapse collapse" data-bs-parent="#testsAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>Вопрос:</strong> {{ test.text }}</p>
+                                    <p><strong>Правильный ответ:</strong> {{ test.answer }}</p>
+                                    {% if test.options %}
+                                    <p><strong>Варианты ответов:</strong></p>
+                                    <ul>
+                                        {% for opt in test.options %}
+                                        <li>{{ opt }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="editTest({{ test.id }})">
+                                            <i class="fas fa-edit"></i> Редактировать
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTest({{ test.id }}, '{{ test.title }}')">
+                                            <i class="fas fa-trash"></i> Удалить
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
+                        <p>Нет тестов в этом уроке</p>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTestModal">
+                            <i class="fas fa-plus-circle"></i> Создать первый тест
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ЗАДАНИЯ ==================== -->
+        <div class="tab-pane fade" id="tasks" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-code"></i> Практические задания</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                        <i class="fas fa-plus-circle"></i> Создать задание
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in tasks %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ task.title }}</h6>
+                                    <p class="text-muted small mb-1">{{ task.description[:100] }}{% if task.description and task.description|length > 100 %}...{% endif %}</p>
+                                    {% if task.link %}
+                                    <small class="text-muted"><i class="fas fa-link"></i> {{ task.link }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary" onclick="editTask({{ task.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteTask({{ task.id }}, '{{ task.title }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-code fa-4x text-muted mb-3"></i>
+                        <p>Нет практических заданий</p>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                            <i class="fas fa-plus-circle"></i> Создать первое задание
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== МОДАЛЬНЫЕ ОКНА ==================== -->
+
+<!-- Модальное окно создания теории -->
+<div class="modal fade" id="createTheoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Добавить теорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_create_theory', lesson_id=lesson.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Заголовок *</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Содержание</label>
+                        <textarea name="content" class="form-control tinymce-editor" rows="10"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Изображение</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Рекомендуемый размер: 400x300px. Поддерживаются PNG, JPG, GIF, WEBP</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования теории -->
+<div class="modal fade" id="editTheoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Редактирование теории</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTheoryForm" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="theory_id" id="edit_theory_id">
+                    <div class="mb-3">
+                        <label class="form-label">Заголовок *</label>
+                        <input type="text" name="title" id="edit_theory_title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Содержание</label>
+                        <textarea name="content" class="form-control tinymce-editor" rows="10"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Текущее изображение</label>
+                        <div class="mb-2">
+                            <img id="current_theory_image" src="" style="max-width: 200px; max-height: 150px; border-radius: 10px;">
+                        </div>
+                        <label class="form-label">Новое изображение</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Оставьте пустым, чтобы сохранить текущее изображение</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания теста -->
+<div class="modal fade" id="createTestModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Создать тест</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_create_test', lesson_id=lesson.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название теста *</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Текст вопроса *</label>
+                        <textarea name="text" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип вопроса</label>
+                        <select name="type" class="form-select">
+                            <option value="single">Один правильный ответ</option>
+                            <option value="multiple">Несколько правильных ответов</option>
+                            <option value="text">Свободный ответ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Правильный ответ</label>
+                        <input type="text" name="answer" class="form-control" placeholder="Для нескольких ответов используйте запятую">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Варианты ответов (по одному на строку)</label>
+                        <textarea name="options" class="form-control" rows="4" placeholder="Вариант 1&#10;Вариант 2&#10;Вариант 3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать тест</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания задания -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Создать задание</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_create_task', lesson_id=lesson.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название задания *</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ссылка на ресурс</label>
+                        <input type="url" name="link" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Изображение (URL)</label>
+                        <input type="text" name="image" class="form-control" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать задание</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editTheory(id) { alert('Редактирование теории (в разработке)'); }
+    function editTest(id) { alert('Редактирование теста (в разработке)'); }
+    function editTask(id) { alert('Редактирование задания (в разработке)'); }
+    
+    function deleteTheory(id, title) {
+        if (confirm(`Удалить "${title}"?`)) {
+            window.location.href = `/admin/theory/${id}/delete`;
+        }
+    }
+    
+    function deleteTest(id, title) {
+        if (confirm(`Удалить тест "${title}"?`)) {
+            window.location.href = `/admin/test/${id}/delete`;
+        }
+    }
+    
+    function deleteTask(id, title) {
+        if (confirm(`Удалить задание "${title}"?`)) {
+            window.location.href = `/admin/task/${id}/delete`;
+        }
+    }
+</script>
+{% endblock %}

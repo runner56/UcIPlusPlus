@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="mb-4">
+                <i class="fas fa-search fa-5x text-muted"></i>
+            </div>
+            <h1 class="display-1 fw-bold text-primary">404</h1>
+            <h2 class="mb-4">Страница не найдена</h2>
+            <p class="lead text-muted mb-4">
+                К сожалению, страница, которую вы ищете, не существует или была перемещена.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home"></i> На главную
+                </a>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
+            </div>
+            
+            <!-- Предполагаемые действия -->
+            <div class="mt-5 pt-4">
+                <h5>Возможно, вам стоит посетить:</h5>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="fas fa-tachometer-alt fa-2x text-primary mb-2"></i>
+                                    <h6 class="mb-0">Дашборд</h6>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('student_dashboard') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="fas fa-graduation-cap fa-2x text-success mb-2"></i>
+                                    <h6 class="mb-0">Обучение</h6>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('chat_index') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="fas fa-comments fa-2x text-info mb-2"></i>
+                                    <h6 class="mb-0">Чаты</h6>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}

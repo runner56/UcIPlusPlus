@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CodeQuest | Учись программировать{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+
+    <!-- TinyMCE Editor -->
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
+<script>
+    // Функция для инициализации TinyMCE
+    function initTinyMCE(selector) {
+        if (typeof tinymce !== 'undefined' && document.querySelector(selector)) {
+            tinymce.init({
+                selector: selector,
+                height: 400,
+                menubar: true,
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                    'bold italic backcolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | help | code | fullscreen',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.6; }',
+                language: 'ru',
+                skin: 'oxide',
+                content_css: 'default',
+                branding: false
+            });
+        }
+    }
+    
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        initTinyMCE('.tinymce-editor');
+    });
+    
+    // Переинициализация при открытии модальных окон
+    document.addEventListener('shown.bs.modal', function() {
+        setTimeout(function() {
+            if (document.querySelector('.modal .tinymce-editor')) {
+                if (typeof tinymce !== 'undefined') {
+                    tinymce.remove('.modal .tinymce-editor');
+                    initTinyMCE('.modal .tinymce-editor');
+                }
+            }
+        }, 100);
+    });
+    
+    // Очистка при закрытии модальных окон
+    document.addEventListener('hidden.bs.modal', function() {
+        if (typeof tinymce !== 'undefined') {
+            tinymce.remove('.modal .tinymce-editor');
+        }
+    });
+</script>
+</head>
+
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-code"></i> CodeQuest
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-home"></i> Главная
+                        </a>
+                    </li>
+
+                    {% if current_user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-user-shield"></i> Админ панель
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_modules') }}">
+                            <i class="fas fa-book"></i> Модули
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_users') }}">
+                            <i class="fas fa-users"></i> Пользователи
+                        </a>
+                    </li>
+                    {% elif current_user.role == 'teacher' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('teacher_dashboard') }}">
+                            <i class="fas fa-chalkboard-user"></i> Мои группы
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('teacher_groups') }}">
+                            <i class="fas fa-users"></i> Группы
+                        </a>
+                    </li>
+                    {% elif current_user.role == 'parent' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('parent_dashboard') }}">
+                            <i class="fas fa-child"></i> Мои дети
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('student_dashboard') }}">
+                            <i class="fas fa-graduation-cap"></i> Обучение
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('chat_index') }}">
+                            <i class="fas fa-comments"></i> Чаты
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" 
+                                 class="rounded-circle me-1" width="30" height="30">
+                            {{ current_user.username }}
+                            {% if current_user.itcoins > 0 %}
+                                <span class="badge bg-warning text-dark ms-1">
+                                    <i class="fas fa-coins"></i> {{ current_user.itcoins }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">
+                                <i class="fas fa-user"></i> Профиль
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Выход
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt"></i> Вход
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash сообщения -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Основной контент -->
+    {% block content %}{% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

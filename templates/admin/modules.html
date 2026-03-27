@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Управление модулями | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-book text-primary"></i> Модули обучения
+            </h1>
+            <p class="text-muted">Управление учебными модулями и их содержимым</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModuleModal">
+            <i class="fas fa-plus-circle"></i> Создать модуль
+        </button>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" id="searchModule" class="form-control" placeholder="🔍 Поиск по названию...">
+                </div>
+                <div class="col-md-4">
+                    <select id="statusFilter" class="form-select">
+                        <option value="all">Все модули</option>
+                        <option value="with_lessons">С уроками</option>
+                        <option value="without_lessons">Без уроков</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i> Сброс
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список модулей -->
+    {% if modules %}
+    <div class="row g-4" id="modulesContainer">
+        {% for module in modules %}
+        <div class="col-md-6 col-lg-4 module-card" data-title="{{ module.title|lower }}" data-lessons="{{ module.lessons_list|length }}">
+            <div class="card h-100 shadow-sm hover-card">
+                <!-- Картинка модуля -->
+                <div class="card-img-top text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <img src="{{ url_for('static', filename=module.get_photo_url()) }}" 
+                         alt="{{ module.title }}"
+                         style="height: 120px; width: auto; object-fit: contain; border-radius: 10px;">
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ module.title }}</h5>
+                        <span class="badge bg-{{ 'success' if module.lessons_list|length > 0 else 'secondary' }}">
+                            {{ module.lessons_list|length }} уроков
+                        </span>
+                    </div>
+                    <p class="card-text text-muted small">{{ module.description[:100] }}{% if module.description and module.description|length > 100 %}...{% endif %}</p>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt"></i> Создан: {{ module.created_at.strftime('%d.%m.%Y') if module.created_at else 'Неизвестно' }}
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{{ url_for('admin_module_detail', module_id=module.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> Уроки
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="editModule({{ module.id }})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteModule({{ module.id }}, '{{ module.title }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-book fa-4x text-muted mb-3"></i>
+            <h5>Нет созданных модулей</h5>
+            <p class="text-muted">Создайте первый модуль, чтобы начать наполнение платформы</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModuleModal">
+                <i class="fas fa-plus-circle"></i> Создать модуль
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно создания модуля -->
+<div class="modal fade" id="createModuleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Создание модуля</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_create_module') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название модуля *</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Например: Основы Python">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Опишите, чему научится ученик"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Иконка</label>
+                        <select name="icon" class="form-select">
+                            <option value="book">📖 Книга</option>
+                            <option value="python">🐍 Python</option>
+                            <option value="code">💻 Код</option>
+                            <option value="gamepad">🎮 Игра</option>
+                            <option value="robot">🤖 Робот</option>
+                            <option value="globe">🌐 Веб</option>
+                            <option value="database">🗄️ База данных</option>
+                            <option value="chart-line">📊 Анализ данных</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Обложка модуля</label>
+                        <input type="file" name="photo" class="form-control" accept="image/*">
+                        <small class="text-muted">Рекомендуемый размер: 300x200px</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать модуль</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования модуля -->
+<div class="modal fade" id="editModuleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Редактирование модуля</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editModuleForm" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="module_id" id="edit_module_id">
+                    <div class="mb-3">
+                        <label class="form-label">Название модуля *</label>
+                        <input type="text" name="title" id="edit_title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" id="edit_description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Иконка</label>
+                        <select name="icon" id="edit_icon" class="form-select">
+                            <option value="book">📖 Книга</option>
+                            <option value="python">🐍 Python</option>
+                            <option value="code">💻 Код</option>
+                            <option value="gamepad">🎮 Игра</option>
+                            <option value="robot">🤖 Робот</option>
+                            <option value="globe">🌐 Веб</option>
+                            <option value="database">🗄️ База данных</option>
+                            <option value="chart-line">📊 Анализ данных</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Новая обложка</label>
+                        <input type="file" name="photo" class="form-control" accept="image/*">
+                        <small class="text-muted">Оставьте пустым, чтобы сохранить текущую обложку</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+</style>
+
+<script>
+    // Поиск и фильтрация
+    function filterModules() {
+        const searchTerm = document.getElementById('searchModule').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        
+        const cards = document.querySelectorAll('.module-card');
+        
+        cards.forEach(card => {
+            const title = card.dataset.title;
+            const lessons = parseInt(card.dataset.lessons);
+            
+            let show = true;
+            
+            if (searchTerm && !title.includes(searchTerm)) {
+                show = false;
+            }
+            if (statusFilter === 'with_lessons' && lessons === 0) {
+                show = false;
+            }
+            if (statusFilter === 'without_lessons' && lessons > 0) {
+                show = false;
+            }
+            
+            card.style.display = show ? '' : 'none';
+        });
+    }
+    
+    function resetFilters() {
+        document.getElementById('searchModule').value = '';
+        document.getElementById('statusFilter').value = 'all';
+        filterModules();
+    }
+    
+    function editModule(moduleId) {
+        fetch(`/admin/module/${moduleId}/data`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('edit_module_id').value = data.id;
+                document.getElementById('edit_title').value = data.title;
+                document.getElementById('edit_description').value = data.description || '';
+                document.getElementById('edit_icon').value = data.icon || 'book';
+                document.getElementById('editModuleForm').action = `/admin/module/${moduleId}/edit`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editModuleModal'));
+                modal.show();
+            });
+    }
+    
+    function deleteModule(moduleId, moduleTitle) {
+        if (confirm(`Вы уверены, что хотите удалить модуль "${moduleTitle}"?\n\nВсе уроки, тесты и задания внутри модуля также будут удалены!`)) {
+            window.location.href = `/admin/module/${moduleId}/delete`;
+        }
+    }
+    
+    document.getElementById('searchModule').addEventListener('input', filterModules);
+    document.getElementById('statusFilter').addEventListener('change', filterModules);
+</script>
+{% endblock %}

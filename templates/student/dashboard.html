@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Мое обучение | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-graduation-cap text-primary"></i> Мое обучение
+            </h1>
+            <p class="text-muted">Продолжай учиться и набирай очки, {{ current_user.username }}!</p>
+        </div>
+        <div class="text-end">
+            <div class="card bg-warning bg-opacity-10 border-warning">
+                <div class="card-body py-2">
+                    <h5 class="mb-0">
+                        <i class="fas fa-coins text-warning"></i> {{ current_user.itcoins }} ITCoins
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Прогресс -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Общий прогресс</h5>
+            <div class="progress mb-2" style="height: 25px;">
+                <div class="progress-bar bg-success" style="width: {{ overall_progress }}%">
+                    {{ overall_progress }}%
+                </div>
+            </div>
+            <small class="text-muted">Пройдено {{ completed_lessons }} из {{ total_lessons }} уроков</small>
+        </div>
+    </div>
+    
+    <!-- Мои модули -->
+    <h3 class="h4 mb-3">Доступные модули</h3>
+    <div class="row g-4">
+        {% for module in modules %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <img src="{{ url_for('static', filename=module.get_photo_url()) }}" 
+                     class="card-img-top" 
+                     alt="{{ module.title }}" 
+                     style="height: 150px; object-fit: cover;"
+                     onerror="this.src='{{ url_for('static', filename='uploads/modules/default_module.png') }}'">
+                <div class="card-body">
+                    <h5 class="card-title">{{ module.title }}</h5>
+                    <p class="card-text text-muted">{{ module.description[:100] }}{% if module.description and module.description|length > 100 %}...{% endif %}</p>
+                    <div class="progress mb-2" style="height: 5px;">
+                        <div class="progress-bar bg-success" style="width: {{ module.progress }}%"></div>
+                    </div>
+                    <small class="text-muted">Прогресс: {{ module.progress }}%</small>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="{{ url_for('student_module', module_id=module.id) }}" class="btn btn-primary w-100">
+                        <i class="fas fa-play"></i> Начать обучение
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.hover-shadow {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

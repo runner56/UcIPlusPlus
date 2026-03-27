@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="h2 mb-4">
+        <i class="fas fa-chart-line text-primary"></i> Результаты обучения
+    </h1>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active" data-view="tests">
+                    <i class="fas fa-tasks"></i> Результаты тестов
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" data-view="tasks">
+                    <i class="fas fa-code"></i> Выполненные задания
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" data-view="progress">
+                    <i class="fas fa-chart-simple"></i> Прогресс учеников
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Результаты тестов</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ученик</th>
+                                    <th>Тест</th>
+                                    <th>Результат</th>
+                                    <th>Очки</th>
+                                    <th>Дата</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in test_results %}
+                                <tr>
+                                    <td>{{ result.user.username }}</td>
+                                    <td>{{ result.test.title }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if result.score > 70 else 'warning' if result.score > 50 else 'danger' }}">
+                                            {{ result.score }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ result.points }} 🪙</td>
+                                    <td>{{ result.date.strftime('%d.%m.%Y') }}</td>
+                                </tr>

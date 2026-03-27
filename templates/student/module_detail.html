@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module.title }} | CodeQuest{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lesson-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+        cursor: pointer;
+    }
+    .lesson-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .lesson-completed {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border-left: 4px solid #4caf50;
+    }
+    .lesson-in-progress {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-left: 4px solid #ff9800;
+    }
+    .lesson-not-started {
+        background: white;
+        border-left: 4px solid #e0e0e0;
+    }
+    .progress-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .progress-circle.completed {
+        background: #4caf50;
+        color: white;
+    }
+    .progress-circle.in-progress {
+        background: #ff9800;
+        color: white;
+    }
+    .progress-circle.not-started {
+        background: #e0e0e0;
+        color: #666;
+    }
+    .module-cover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    .lesson-progress-bar {
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .lesson-progress-fill {
+        height: 100%;
+        background: #4caf50;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('student_dashboard') }}">Мое обучение</a></li>
+            <li class="breadcrumb-item active">{{ module.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Обложка модуля -->
+    <div class="module-cover">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center">
+                <img src="{{ url_for('static', filename=module.get_photo_url()) }}" 
+                     alt="{{ module.title }}" 
+                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 15px;"
+                     onerror="this.src='{{ url_for('static', filename='uploads/modules/default_module.png') }}'">
+            </div>
+            <div class="col-md-6">
+                <h1 class="display-5 fw-bold mb-3">{{ module.title }}</h1>
+                <p class="lead mb-0">{{ module.description or 'Нет описания' }}</p>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center bg-white bg-opacity-25 rounded-3 p-3">
+                    <div class="display-4 fw-bold">{{ progress.progress.get('percentage', 0) }}%</div>
+                    <div class="small">прогресс модуля</div>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar bg-white" style="width: {{ progress.progress.get('percentage', 0) }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Всего уроков</h6>
+                            <h2 class="mb-0">{{ lessons|length }}</h2>
+                        </div>
+                        <i class="fas fa-book fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Пройдено уроков</h6>
+                            <h2 class="mb-0">{{ progress.progress.get('completed_lessons', [])|length }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Осталось уроков</h6>
+                            <h2 class="mb-0">{{ lessons|length - progress.progress.get('completed_lessons', [])|length }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Уроки модуля</h5>
+        </div>
+        <div class="card-body">
+            {% if lessons %}
+            <div class="row">
+                {% for lesson in lessons %}
+                {% set lesson_id_str = lesson.id|string %}
+                {% set lesson_data = progress.progress.get('lessons', {}).get(lesson_id_str, {}) %}
+                {% set is_completed = lesson_data.get('completed', false) %}
+                {% set is_started = lesson_data.get('started', false) %}
+                
+                <!-- Вычисляем прогресс урока из данных -->
+                {% set lesson_tests = lesson_data.get('tests', {}) %}
+                {% set lesson_tasks = lesson_data.get('tasks', {}) %}
+                {% set theory_viewed = lesson_data.get('theory_viewed', false) %}
+                {% set tests_completed = lesson_tests.values()|selectattr('completed', 'equalto', true)|list|length %}
+                {% set tasks_completed = lesson_tasks.values()|selectattr('completed', 'equalto', true)|list|length %}
+                {% set theory_done = 1 if theory_viewed else 0 %}
+                {% set lesson_total = 1 + lesson_tests|length + lesson_tasks|length %}
+                {% set lesson_done = theory_done + tests_completed + tasks_completed %}
+                {% set lesson_percent = (lesson_done / lesson_total * 100)|int if lesson_total > 0 else 0 %}
+                
+                <div class="col-12">
+                    <div class="lesson-card card {% if is_completed %}lesson-completed{% elif is_started %}lesson-in-progress{% else %}lesson-not-started{% endif %}"
+                         onclick="window.location.href='{{ url_for('student_lesson', lesson_id=lesson.id) }}'">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="progress-circle {% if is_completed %}completed{% elif is_started %}in-progress{% else %}not-started{% endif %}">
+                                        {% if is_completed %}
+                                        <i class="fas fa-check"></i>
+                                        {% else %}
+                                        <span class="h5 mb-0">{{ loop.index }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h5 class="card-title mb-1">
+                                        {{ lesson.title }}
+                                        {% if is_completed %}
+                                        <span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Пройден</span>
+                                        {% elif is_started %}
+                                        <span class="badge bg-warning ms-2"><i class="fas fa-play"></i> В процессе</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary ms-2"><i class="fas fa-lock"></i> Не начат</span>
+                                        {% endif %}
+                                    </h5>
+                                    <p class="card-text text-muted small">{{ lesson.content[:100] }}{% if lesson.content and lesson.content|length > 100 %}...{% endif %}</p>
+                                    <div class="lesson-progress-bar">
+                                        <div class="lesson-progress-fill" style="width: {{ lesson_percent }}%"></div>
+                                    </div>
+                                    <small class="text-muted">Прогресс урока: {{ lesson_percent }}%</small>
+                                    <div class="mt-2">
+                                        {% if lesson.theory_list|length > 0 %}
+                                        <span class="badge bg-info me-1">
+                                            <i class="fas fa-book-open"></i> {{ lesson.theory_list|length }} теорий
+                                        </span>
+                                        {% endif %}
+                                        {% if lesson.tests_list|length > 0 %}
+                                        <span class="badge bg-primary me-1">
+                                            <i class="fas fa-tasks"></i> {{ lesson.tests_list|length }} тестов
+                                        </span>
+                                        {% endif %}
+                                        {% if lesson.tasks_list|length > 0 %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-code"></i> {{ lesson.tasks_list|length }} заданий
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    {% if not is_completed %}
+                                    <a href="{{ url_for('student_lesson', lesson_id=lesson.id) }}" class="btn btn-primary" onclick="event.stopPropagation()">
+                                        <i class="fas fa-play"></i> {{ 'Продолжить' if is_started else 'Начать' }}
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ url_for('student_lesson', lesson_id=lesson.id) }}" class="btn btn-outline-success" onclick="event.stopPropagation()">
+                                        <i class="fas fa-redo"></i> Повторить
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                <h5>В этом модуле пока нет уроков</h5>
+                <p class="text-muted">Скоро здесь появятся новые уроки!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

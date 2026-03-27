@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chat.title }} | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('chat_index') }}">Чаты</a></li>
+            <li class="breadcrumb-item active">{{ chat.title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Карточка чата -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments text-primary"></i> {{ chat.title }}
+                    </h5>
+                    {% if group %}
+                    <small class="text-muted">
+                        <i class="fas fa-chalkboard"></i> Группа: {{ group.title }}
+                    </small>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="badge bg-info">
+                        <i class="fas fa-user-friends"></i> {{ chat.users|length }} участников
+                    </span>
+                    {% if group %}
+                    <a href="{{ url_for('teacher_group_detail', group_id=group.id) if current_user.role == 'teacher' else '#' }}" class="btn btn-sm btn-outline-secondary ms-2">
+                        <i class="fas fa-arrow-left"></i> К группе
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Сообщения -->
+        <div class="card-body" style="height: 500px; overflow-y: auto; background-color: #f8f9fa;" id="messagesContainer">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-3 d-flex {% if message.user_id == current_user.id %}justify-content-end{% endif %}">
+                    <div class="{% if message.user_id == current_user.id %}bg-primary text-white{% else %}bg-white{% endif %} rounded-3 p-3 shadow-sm" style="max-width: 70%;">
+                        <div class="d-flex align-items-center mb-1">
+                            {% if message.user_id != current_user.id and message.user %}
+                            <img src="{{ url_for('static', filename=message.user.get_photo_url()) }}" 
+                                 class="rounded-circle me-2" width="24" height="24"
+                                 onerror="this.src='{{ url_for('static', filename='uploads/users/default_avatar.png') }}'">
+                            <strong class="{% if message.user_id == current_user.id %}text-white{% else %}text-primary{% endif %}">
+                                {{ message.user.username }}
+                            </strong>
+                            {% elif message.user_id == current_user.id %}
+                            <strong class="text-white">
+                                Вы
+                            </strong>
+                            {% endif %}
+                        </div>
+                        {% if message.title %}
+                        <div class="fw-bold mb-1">{{ message.title }}</div>
+                        {% endif %}
+                        <div>{{ message.text }}</div>
+                        <div class="small {% if message.user_id == current_user.id %}text-white-50{% else %}text-muted{% endif %} mt-1 text-end">
+                            {{ message.datetime.strftime('%d.%m.%Y %H:%M') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-comment-dots fa-3x mb-3"></i>
+                <p>Пока нет сообщений. Напишите первое!</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Форма отправки -->
+        <div class="card-footer bg-white">
+            <form action="{{ url_for('chat_send', chat_id=chat.id) }}" method="POST">
+                <div class="input-group">
+                    <input type="text" name="message" class="form-control" placeholder="Введите сообщение..." required autocomplete="off">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Отправить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автоскролл вниз при загрузке
+    const container = document.getElementById('messagesContainer');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    // Автоматическое обновление чата каждые 10 секунд
+    let autoRefresh = setInterval(function() {
+        location.reload();
+    }, 10000);
+    
+    // Останавливаем автообновление при фокусе на поле ввода
+    const messageInput = document.querySelector('input[name="message"]');
+    if (messageInput) {
+        messageInput.addEventListener('focus', function() {
+            clearInterval(autoRefresh);
+        });
+        messageInput.addEventListener('blur', function() {
+            autoRefresh = setInterval(function() {
+                location.reload();
+            }, 10000);
+        });
+    }
+</script>
+{% endblock %}

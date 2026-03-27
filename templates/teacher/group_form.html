@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактирование' if group else 'Создание' }} группы | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{{ 'edit' if group else 'plus-circle' }} text-primary"></i>
+                        {{ 'Редактирование' if group else 'Создание' }} группы
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('teacher_save_group') if not group else url_for('teacher_update_group', group_id=group.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label">Название группы *</label>
+                            <input type="text" name="title" class="form-control" 
+                                   value="{{ group.title if group else '' }}" required
+                                   placeholder="Например: Python для начинающих">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Модуль обучения *</label>
+                            <select name="module_id" class="form-select" required>
+                                <option value="">Выберите модуль</option>
+                                {% for module in modules %}
+                                <option value="{{ module.id }}" {% if group and group.id_module == module.id %}selected{% endif %}>
+                                    {{ module.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Дата начала *</label>
+                            <input type="date" name="date" class="form-control" 
+                                   value="{{ group.date.strftime('%Y-%m-%d') if group else '' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Описание (необязательно)</label>
+                            <textarea name="description" class="form-control" rows="3">{{ group.description if group else '' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ 'Сохранить' if group else 'Создать' }}
+                            </button>
+                            <a href="{{ url_for('teacher_groups') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
