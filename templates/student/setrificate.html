@@ -16,7 +16,8 @@
             <div class="card bg-light border">
                 <div class="card-body py-2">
                     <h5 class="mb-0">
-                        <i class="fas fa-award text-primary"></i> 3 документа
+                        <i class="fas fa-award text-primary"></i> 
+                        {{ certificates | selectattr('status', 'equalto', 'received') | list | length }} документа
                     </h5>
                 </div>
             </div>
@@ -26,210 +27,91 @@
     <!-- Сетка сертификатов -->
     <div class="row g-4">
         
-        <!-- Сертификат 1: Основы Python (Золотой - Получен) -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-warning border-3 shadow-sm hover-shadow certificate-card gold" style="border-radius: 0;">
-                <div class="card-body text-center p-4">
-                    <!-- Иконка/Бейдж -->
-                    <div class="mb-3">
-                        <i class="fas fa-award fa-4x text-warning"></i>
-                    </div>
-                    <span class="badge bg-warning text-dark mb-2">Золотой сертификат</span>
-                    <h4 class="card-title fw-bold text-dark">Основы Python</h4>
-                    <p class="text-muted small mb-3">
-                        Выдан: 15.10.2023<br>
-                        ID: PY-2023-001
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-warning text-dark">
-                            <i class="fas fa-download"></i> Скачать PDF
-                        </a>
+        {% for cert in certificates %}
+            {% if cert.status == 'received' %}
+                <!-- Логика стилей (сокращенно) -->
+                {% if cert.type == 'gold' %}
+                    {% set border_class = 'border-warning' %} {% set icon_class = 'text-warning' %}
+                    {% set badge_class = 'bg-warning text-dark' %} {% set btn_class = 'btn-warning text-dark' %}
+                    {% set card_bg_class = 'gold' %} {% set badge_text = 'Золотой сертификат' %}
+                {% elif cert.type == 'silver' %}
+                    {% set border_class = 'border-secondary' %} {% set icon_class = 'text-secondary' %}
+                    {% set badge_class = 'bg-secondary' %} {% set btn_class = 'btn-outline-secondary' %}
+                    {% set card_bg_class = 'silver' %} {% set badge_text = 'Серебряный сертификат' %}
+                {% elif cert.type == 'bronze' %}
+                    {% set border_class = 'border-bronze' %} {% set icon_class = 'text-bronze' %}
+                    {% set badge_class = 'bg-bronze text-white' %} {% set btn_class = 'btn-outline-bronze' %}
+                    {% set card_bg_class = 'bronze' %} {% set badge_text = 'Бронзовый сертификат' %}
+                {% else %}
+                    {% set border_class = 'border-dark' %} {% set icon_class = 'text-dark' %}
+                    {% set badge_class = 'bg-dark text-white' %} {% set btn_class = 'btn-outline-dark' %}
+                    {% set card_bg_class = '' %} {% set badge_text = 'Сертификат' %}
+                {% endif %}
+
+                <!-- Карточка -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 {{ border_class }} border-3 shadow-sm hover-shadow certificate-card {{ card_bg_class }}" style="border-radius: 0;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-award fa-4x {{ icon_class }}"></i>
+                            </div>
+                            <span class="badge {{ badge_class }} mb-2">{{ badge_text }}</span>
+                            <h4 class="card-title fw-bold text-dark">{{ cert.title }}</h4>
+                            <p class="text-muted small mb-3">
+                                {% if cert.date %}Выдан: {{ cert.date }}<br>{% endif %}
+                                {% if cert.unique_id %}ID: {{ cert.unique_id }}{% endif %}
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="#" class="btn {{ btn_class }}">
+                                    <i class="fas fa-download"></i> Скачать PDF
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            {% endif %}
+        {% else %}
+            <!-- ЭТОТ БЛОК ПОКАЖЕТСЯ, ЕСЛИ СПИСОК ПУСТ ИЛИ НЕТ ПОЛУЧЕННЫХ СЕРТИФИКАТОВ -->
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Сертификаты не найдены</h4>
+                <p class="text-muted">Возможно, вы еще не завершили ни один курс, или файл данных пуст.</p>
             </div>
-        </div>
-
-        <!-- Сертификат 2: Основы C++ (Серебряный - Получен) -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-secondary border-3 shadow-sm hover-shadow certificate-card silver" style="border-radius: 0;">
-                <div class="card-body text-center p-4">
-                    <div class="mb-3">
-                        <i class="fas fa-award fa-4x text-secondary"></i>
-                    </div>
-                    <span class="badge bg-secondary mb-2">Серебряный сертификат</span>
-                    <h4 class="card-title fw-bold text-dark">Основы C++</h4>
-                    <p class="text-muted small mb-3">
-                        Выдан: 02.09.2023<br>
-                        ID: CPP-2023-045
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-outline-secondary">
-                            <i class="fas fa-download"></i> Скачать PDF
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Сертификат 3: Основы Python для детей (Бронзовый - Получен) -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-bronze border-3 shadow-sm hover-shadow certificate-card bronze" style="border-radius: 0;">
-                <div class="card-body text-center p-4">
-                    <div class="mb-3">
-                        <i class="fas fa-award fa-4x text-bronze"></i>
-                    </div>
-                    <span class="badge bg-bronze text-white mb-2">Бронзовый сертификат</span>
-                    <h4 class="card-title fw-bold text-dark">Основы Python для детей</h4>
-                    <p class="text-muted small mb-3">
-                        Выдан: 20.11.2023<br>
-                        ID: PYK-2023-112
-                    </p>
-                    <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-outline-bronze">
-                            <i class="fas fa-download"></i> Скачать PDF
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Сертификат 4: Продвинутый Python (Не получен - Заблокирован) -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-light border-3 shadow-sm hover-shadow certificate-card locked" style="border-radius: 0; opacity: 0.75;">
-                <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
-                    <div class="mb-3">
-                        <i class="fas fa-lock fa-4x text-muted"></i>
-                    </div>
-                    <span class="badge bg-light text-muted border mb-2">Не получен</span>
-                    <h4 class="card-title fw-bold text-muted">Продвинутый Python</h4>
-                    <p class="text-muted small mb-3">
-                        Сдайте финальный экзамен для получения.
-                    </p>
-                    <div class="progress mt-auto" style="height: 5px; border-radius: 0;">
-                        <div class="progress-bar" role="progressbar" style="width: 65%;"></div>
-                    </div>
-                    <small class="text-muted mt-2">Прогресс: 65%</small>
-                </div>
-            </div>
-        </div>
-
+        {% endfor %}
     </div>
 </div>
 
 <style>
-    /* --- CSS Стили --- */
-    
-    /* Кастомный цвет для бронзового */
-    :root {
-        --bronze-color: #cd7f32;
-    }
-
-    .text-bronze {
-        color: var(--bronze-color) !important;
-    }
-
-    .border-bronze {
-        border-color: var(--bronze-color) !important;
-    }
-
-    .bg-bronze {
-        background-color: var(--bronze-color) !important;
-    }
-
-    .btn-outline-bronze {
-        color: var(--bronze-color);
-        border-color: var(--bronze-color);
-    }
-    .btn-outline-bronze:hover {
-        color: #fff;
-        background-color: var(--bronze-color);
-        border-color: var(--bronze-color);
-    }
-
-    /* Эффект наведения (как в других разделах) */
-    .hover-shadow {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .hover-shadow:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
-    }
-
-    /* Анимация блеска для золотого сертификата */
-    .certificate-card.gold {
-        background: linear-gradient(135deg, #fffdf0 0%, #fff 100%);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .certificate-card.gold::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 215, 0, 0.2) 50%,
-            rgba(255, 255, 255, 0) 100%
-        );
-        transform: rotate(45deg);
-        animation: shine 3s infinite;
-        pointer-events: none;
-    }
-
-    @keyframes shine {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    /* Стили для серебряного */
-    .certificate-card.silver {
-        background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
-    }
-
-    /* Стили для бронзового */
-    .certificate-card.bronze {
-        background: linear-gradient(135deg, #fdf5e7 0%, #fff 100%);
-    }
-
-    /* Стили для заблокированного */
-    .certificate-card.locked {
-        background: #f8f9fa;
-    }
+    /* Стили остаются без изменений */
+    :root { --bronze-color: #cd7f32; }
+    .text-bronze { color: var(--bronze-color) !important; }
+    .border-bronze { border-color: var(--bronze-color) !important; }
+    .bg-bronze { background-color: var(--bronze-color) !important; }
+    .btn-outline-bronze { color: var(--bronze-color); border-color: var(--bronze-color); }
+    .btn-outline-bronze:hover { color: #fff; background-color: var(--bronze-color); border-color: var(--bronze-color); }
+    .hover-shadow { transition: transform 0.2s, box-shadow 0.2s; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important; }
+    .certificate-card.gold { background: linear-gradient(135deg, #fffdf0 0%, #fff 100%); position: relative; overflow: hidden; }
+    .certificate-card.gold::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 215, 0, 0.2) 50%, rgba(255, 255, 255, 0) 100%); transform: rotate(45deg); animation: shine 3s infinite; pointer-events: none; }
+    @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } }
+    .certificate-card.silver { background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); }
+    .certificate-card.bronze { background: linear-gradient(135deg, #fdf5e7 0%, #fff 100%); }
 </style>
 
 <script>
-    // --- JS Логика ---
-    
     document.addEventListener('DOMContentLoaded', function() {
-        // Пример обработки нажатия на кнопку скачивания
-        const downloadBtns = document.querySelectorAll('.certificate-card:not(.locked) .btn');
-        
+        const downloadBtns = document.querySelectorAll('.certificate-card .btn');
         downloadBtns.forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const cardTitle = this.closest('.card').querySelector('.card-title').innerText;
-                
-                // Визуальный эффект нажатия
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Подготовка...';
-                
                 setTimeout(() => {
                     this.innerHTML = '<i class="fas fa-check"></i> Скачано';
-                    this.classList.remove('btn-warning', 'btn-outline-secondary', 'btn-outline-bronze');
-                    this.classList.add('btn-success');
-                    
-                    // Сброс кнопки через 2 секунды
-                    setTimeout(() => {
-                        location.reload(); 
-                        // Или вручную вернуть исходные классы и текст
-                    }, 2000);
+                    this.className = 'btn btn-success';
+                    setTimeout(() => { location.reload(); }, 2000);
                 }, 1500);
             });
         });
     });
 </script>
-
 {% endblock %}

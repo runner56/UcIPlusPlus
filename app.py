@@ -644,49 +644,72 @@ def game_find_bug():
 # ============================================================
 
 
-@app.route('/student/sertificates/<int:child_id>')
+@app.route('/student/sertificates/')
 @login_required
 @role_required('student')
-def sertificates(child_id):
+def student_sertificates():
 
+    child_id = current_user.id
+    
+    # Формируем путь к файлу
     json_folder = os.path.join(current_app.root_path, 'data', 'certificates')
-
-    filename = f"{child_id}.json"
-    file_path = os.path.join(json_folder, filename)
-
+    file_path = os.path.join(json_folder, f"{child_id}.json")
+    
     certificates_data = []
 
-    # 2. Пытаемся открыть и прочитать файл
+    # --- ОТЛАДКА: Выводим путь в консоль ---
+    print(f"--- Поиск файла: {file_path}")
+
+    # Проверяем, существует ли файл
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r', encoding='utf-8') as json_file:
-                # json.load автоматически преобразует JSON null в Python None
                 certificates_data = json.load(json_file)
-
-                # На всякий случай проверяем, что загрузили список
-                if not isinstance(certificates_data, list):
-                    certificates_data = []
-
+                
+            # --- ОТЛАДКА: Выводим количество считанных записей ---
+            print(f"--- Успешно загружено записей: {len(certificates_data)}")
+            print(f"--- Данные: {certificates_data}") 
+                
         except json.JSONDecodeError:
-            print(
-                f"Ошибка: Файл {filename} поврежден или не является валидным JSON.")
-            # В случае ошибки можно оставить пустой список или данные по умолчанию
+            print(f"Ошибка: Файл {file_path} содержит некорректный JSON.")
+            certificates_data = []
     else:
-        print(f"Файл {filename} не найден для студента с ID {child_id}.")
-        # Здесь можно задать дефолтные данные, если у студента еще нет своего файла
+        print(f"--- Файл НЕ НАЙДЕН по пути: {file_path}")
 
-    # Теперь переменная certificates_data содержит данные в нужном вам формате:
-    # list[dict], где None значения уже преобразованы из JSON null.
-
-    # 3. Передаем список в шаблон
     return render_template('student/setrificate.html', certificates=certificates_data)
 
 
-@app.route('/student/achievements')
+@app.route('/student/achievements/')
 @login_required
 @role_required('student')
-def achievements():
-    return render_template('student/achievements.html')
+def student_achievements():
+
+    child_id = current_user.id     
+
+    print("")
+    # Папка, где хранятся файлы достижений
+    json_folder = os.path.join(current_app.root_path, 'data', 'achievements')
+    filename = f"{child_id}.json"
+    file_path = os.path.join(json_folder, filename)
+    
+    achievements_data = []
+
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                achievements_data = json.load(f)
+        except json.JSONDecodeError:
+            print(f"Ошибка чтения JSON файла {filename}")
+    else:
+        print(f"Файл достижений для ID {child_id} не найден.")
+
+    return render_template('student/achievements.html', achievements=achievements_data)
+
+@app.route('/student/store')
+@login_required
+@role_required('student')
+def store():
+    return render_template('student/store.html')
 
 
 @app.route('/student/store')
