@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Достижения | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок страницы -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-trophy text-warning"></i> Мои достижения
+            </h1>
+            <p class="text-muted">Выполняйте задания, чтобы разблокировать все награды!</p>
+        </div>
+        <div class="text-end">
+            <div class="card bg-success bg-opacity-10 border-success">
+                <div class="card-body py-2">
+                    <h5 class="mb-0 text-success">
+                        <i class="fas fa-medal"></i> 3 из 5 получено
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сетка достижений -->
+    <div class="row g-4">
+        
+        <!-- Достижение 1: Выполнено (Зеленая рамка) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-success border-2 shadow-sm hover-shadow achievement-card" style="border-radius: 0;">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-success bg-opacity-10 p-3 me-3" style="border-radius: 0;">
+                            <i class="fas fa-rocket fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-success mb-1">Первый шаг сделан</h5>
+                            <span class="badge bg-success mb-2">
+                                <i class="fas fa-check-circle"></i> Получено
+                            </span>
+                            <p class="card-text text-muted small mb-0">Пройдите любой модуль полностью</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Достижение 2: Выполнено (Зеленая рамка) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-success border-2 shadow-sm hover-shadow achievement-card" style="border-radius: 0;">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-success bg-opacity-10 p-3 me-3" style="border-radius: 0;">
+                            <i class="fas fa-file-alt fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-success mb-1">Новичок в тестах</h5>
+                            <span class="badge bg-success mb-2">
+                                <i class="fas fa-check-circle"></i> Получено
+                            </span>
+                            <p class="card-text text-muted small mb-0">Пройдите 5 тестовых заданий</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Достижение 3: В процессе (Серая рамкой, затемнено) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-secondary border-2 shadow-sm hover-shadow achievement-card bg-light" style="border-radius: 0; opacity: 0.85;">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-secondary bg-opacity-10 p-3 me-3" style="border-radius: 0;">
+                            <i class="fas fa-shield-alt fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-secondary mb-1">Продвинутый тестировщик</h5>
+                            <span class="badge bg-secondary mb-2">
+                                <i class="fas fa-lock"></i> В процессе
+                            </span>
+                            <p class="card-text text-muted small mb-2">Пройдите 10 тестовых заданий</p>
+                            <!-- Прогресс бар -->
+                            <div class="progress" style="height: 10px; border-radius: 0;">
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1 text-end">6 из 10</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Достижение 4: Не выполнено (Серая рамка, затемнено) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-secondary border-2 shadow-sm hover-shadow achievement-card bg-light" style="border-radius: 0; opacity: 0.85;">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-secondary bg-opacity-10 p-3 me-3" style="border-radius: 0;">
+                            <i class="fas fa-crown fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-secondary mb-1">Мастер тестового дела</h5>
+                            <span class="badge bg-secondary mb-2">
+                                <i class="fas fa-lock"></i> Недоступно
+                            </span>
+                            <p class="card-text text-muted small mb-2">Пройдите все доступные вам тесты</p>
+                            <div class="progress" style="height: 10px; border-radius: 0;">
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1 text-end">Прогресс: 20%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Достижение 5: Выполнено (Зеленая рамка) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-success border-2 shadow-sm hover-shadow achievement-card" style="border-radius: 0;">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-success bg-opacity-10 p-3 me-3" style="border-radius: 0;">
+                            <i class="fas fa-laptop-code fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-success mb-1">Любитель практики</h5>
+                            <span class="badge bg-success mb-2">
+                                <i class="fas fa-check-circle"></i> Получено
+                            </span>
+                            <p class="card-text text-muted small mb-0">Выполните 1 практическое задание</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Эффект при наведении, как в примере "Моего обучения" */
+    .hover-shadow {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+    
+    /* Дополнительный стиль для карточек, чтобы они не скруглялись внутри */
+    .achievement-card .progress, .achievement-card .badge {
+        border-radius: 0; /* Сохраняем стилистику квадратности в мелких деталях, если нужно */
+    }
+    /* Или можно оставить стандартные скругления Bootstrap для бейджей, 
+       но сами карточки строго квадратные как в задании */
+</style>
+{% endblock %}
