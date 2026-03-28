@@ -1666,35 +1666,64 @@ def teacher_delete_group(group_id):
 @app.route('/student/dashboard')
 @login_required
 def student_dashboard():
+    """Дашборд ученика - показывает только модули, к которым есть доступ"""
     if current_user.role != 'student':
         flash('У вас нет доступа к панели ученика', 'danger')
         return redirect(url_for('dashboard'))
-
-    modules = Module.query.all()
-    total_lessons = Lesson.query.count()
+    
+    # Находим все группы, в которых состоит ученик
+    groups = Group.query.join(GroupStudent).filter(GroupStudent.student_id == current_user.id).all()
+    
+    # Получаем уникальные модули из этих групп
+    modules = []
+    module_ids = set()
+    for group in groups:
+        if group.module_id not in module_ids:
+            module_ids.add(group.module_id)
+            module = Module.query.get(group.module_id)
+            if module:
+                # Получаем прогресс по модулю
+                progress = ProgressModule.query.filter_by(
+                    user_id=current_user.id,
+                    module_id=module.id
+                ).first()
+                
+                if progress:
+                    if isinstance(progress.progress, str):
+                        import json
+                        progress_data = json.loads(progress.progress)
+                    else:
+                        progress_data = progress.progress if progress.progress else {}
+                    module.progress = progress_data.get('percentage', 0)
+                else:
+                    module.progress = 0
+                
+                modules.append(module)
+    
+    # Общая статистика
+    total_lessons = 0
     completed_lessons = 0
-
     for module in modules:
+        total_lessons += len(module.lessons_list)
         progress = ProgressModule.query.filter_by(
             user_id=current_user.id,
             module_id=module.id
         ).first()
-
-        if progress and progress.progress:
-            module.progress = progress.progress.get('percentage', 0)
-            if module.progress >= 100:
-                completed_lessons += 1
-        else:
-            module.progress = 0
-
-    overall_progress = (completed_lessons / total_lessons *
-                        100) if total_lessons > 0 else 0
-
-    return render_template('student/dashboard.html',
-                           modules=modules,
-                           overall_progress=int(overall_progress),
-                           completed_lessons=completed_lessons,
-                           total_lessons=total_lessons)
+        if progress:
+            if isinstance(progress.progress, str):
+                import json
+                progress_data = json.loads(progress.progress)
+            else:
+                progress_data = progress.progress if progress.progress else {}
+            completed_lessons += len(progress_data.get('completed_lessons', []))
+    
+    overall_progress = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0
+    
+    return render_template('student/dashboard.html', 
+                         modules=modules,
+                         overall_progress=int(overall_progress),
+                         completed_lessons=completed_lessons,
+                         total_lessons=total_lessons)
 
 
 @app.route('/student/module/<int:module_id>')
