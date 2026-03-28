@@ -612,14 +612,28 @@ def delete_user(user_id):
 # Управление ИГРАМИ
 # ============================================================
 
-@app.route('/game_keyboard')
+@app.route(f'/game_keyboard_cpp')
 @login_required
 @role_required('student')
 def game_keyboard():
-    return render_template('games/keyboard.html')
+    return render_template(f'games/keyboard_cpp.html')
 
 
-@app.route('/game_find_bug')
+@app.route(f'/game_keyboard_python')
+@login_required
+@role_required('student')
+def game_keyboard_1():
+    return render_template(f'games/keyboard_python.html')
+
+
+@app.route(f'/game_word_battle')
+@login_required
+@role_required('student')
+def game_word_buttle():
+    return render_template(f'games/word_buttle.html')
+
+
+@app.route('/game_find')
 @login_required
 @role_required('student')
 def game_find_bug():
@@ -636,10 +650,10 @@ def game_find_bug():
 def sertificates(child_id):
 
     json_folder = os.path.join(current_app.root_path, 'data', 'certificates')
-    
+
     filename = f"{child_id}.json"
     file_path = os.path.join(json_folder, filename)
-    
+
     certificates_data = []
 
     # 2. Пытаемся открыть и прочитать файл
@@ -648,13 +662,14 @@ def sertificates(child_id):
             with open(file_path, 'r', encoding='utf-8') as json_file:
                 # json.load автоматически преобразует JSON null в Python None
                 certificates_data = json.load(json_file)
-                
+
                 # На всякий случай проверяем, что загрузили список
                 if not isinstance(certificates_data, list):
                     certificates_data = []
-                    
+
         except json.JSONDecodeError:
-            print(f"Ошибка: Файл {filename} поврежден или не является валидным JSON.")
+            print(
+                f"Ошибка: Файл {filename} поврежден или не является валидным JSON.")
             # В случае ошибки можно оставить пустой список или данные по умолчанию
     else:
         print(f"Файл {filename} не найден для студента с ID {child_id}.")
@@ -665,8 +680,6 @@ def sertificates(child_id):
 
     # 3. Передаем список в шаблон
     return render_template('student/setrificate.html', certificates=certificates_data)
-
-
 
 
 @app.route('/student/achievements')
@@ -690,7 +703,7 @@ def store():
 def shop_buy(item_id):
     """Покупка товара"""
     import json
-    
+
     # Получаем данные о товаре (временно жестко задаем)
     items_data = {
         1: {"name": "Подписка CodeQuest Pro", "price": 500},
@@ -703,18 +716,18 @@ def shop_buy(item_id):
         8: {"name": "Наушники Sony WH-1000XM5", "price": 800},
         9: {"name": "Годовой доступ CodeQuest Ultimate", "price": 3500}
     }
-    
+
     item = items_data.get(item_id)
     if not item:
         return jsonify({'success': False, 'message': 'Товар не найден'}), 404
-    
+
     if current_user.itcoins < item['price']:
         return jsonify({'success': False, 'message': f'Недостаточно ITCoins! Нужно {item["price"]} ITCoins'}), 400
-    
+
     # Списываем ITCoins
     current_user.itcoins -= item['price']
     db.session.commit()
-    
+
     return jsonify({
         'success': True,
         'message': f'🎉 Поздравляем! Вы купили {item["name"]} за {item["price"]} ITCoins!',
@@ -722,6 +735,8 @@ def shop_buy(item_id):
     })
 
 # ========== УПРАВЛЕНИЕ МОДУЛЯМИ (АДМИН) ==========
+
+
 @app.route('/admin/modules')
 @login_required
 @role_required('admin')
@@ -1150,7 +1165,6 @@ def admin_delete_task(task_id):
     return redirect(url_for('admin_lesson_detail', lesson_id=lesson_id))
 
 
-
 # ========== УПРАВЛЕНИЕ КОИНАМИ (УЧИТЕЛЬ) ==========
 
 @app.route('/teacher/coins')
@@ -1160,20 +1174,21 @@ def teacher_coins():
     """Страница начисления коинов ученикам"""
     # Получаем все группы учителя
     groups = Group.query.filter_by(created_by=current_user.id).all()
-    
+
     # Собираем всех учеников из всех групп
     students = []
     for group in groups:
         for student in group.get_students():
             # Проверяем, не добавлен ли уже этот ученик
-            existing = next((s for s in students if s['user'].id == student.id), None)
+            existing = next(
+                (s for s in students if s['user'].id == student.id), None)
             if not existing:
                 # Получаем прогресс по модулю группы
                 progress = ProgressModule.query.filter_by(
                     user_id=student.id,
                     module_id=group.module_id
                 ).first()
-                
+
                 # Получаем количество выполненных заданий
                 completed_tasks = 0
                 if progress:
@@ -1181,14 +1196,14 @@ def teacher_coins():
                         for task_data in lesson_data.get('tasks', {}).values():
                             if task_data.get('completed', False):
                                 completed_tasks += 1
-                
+
                 students.append({
                     'user': student,
                     'group': group,
                     'completed_tasks': completed_tasks,
                     'itcoins': student.itcoins
                 })
-    
+
     return render_template('teacher/coins.html', students=students, groups=groups)
 
 
@@ -1200,11 +1215,11 @@ def teacher_add_coins():
     student_id = request.form.get('student_id')
     amount = request.form.get('amount')
     reason = request.form.get('reason', '')
-    
+
     if not student_id or not amount:
         flash('Не указан ученик или сумма коинов', 'danger')
         return redirect(url_for('teacher_coins'))
-    
+
     try:
         amount = int(amount)
         if amount <= 0:
@@ -1216,9 +1231,9 @@ def teacher_add_coins():
     except ValueError:
         flash('Неверная сумма коинов', 'danger')
         return redirect(url_for('teacher_coins'))
-    
+
     student = User.query.get_or_404(student_id)
-    
+
     # Проверяем, что ученик действительно в группе учителя
     groups = Group.query.filter_by(created_by=current_user.id).all()
     student_in_group = False
@@ -1226,20 +1241,22 @@ def teacher_add_coins():
         if group.has_student(student):
             student_in_group = True
             break
-    
+
     if not student_in_group:
         flash('Этот ученик не состоит в ваших группах', 'danger')
         return redirect(url_for('teacher_coins'))
-    
+
     # Начисляем коины
     student.itcoins += amount
     db.session.commit()
-    
+
     flash(f'Начислено {amount} ITCoins ученику {student.username}!', 'success')
-    
+
     return redirect(url_for('teacher_coins'))
 
 # ========== УПРАВЛЕНИЕ ГРУППАМИ (УЧИТЕЛЬ/АДМИН) ==========
+
+
 @app.route('/teacher/dashboard')
 @login_required
 @role_required('teacher')
@@ -1323,75 +1340,76 @@ def teacher_create_group():
 def teacher_group_detail(group_id):
     import json
     group = Group.query.get_or_404(group_id)
-    
+
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет доступа к этой группе', 'danger')
         return redirect(url_for('teacher_groups'))
-    
+
     module = Module.query.get(group.module_id)
     chat = group.get_chat()
     students = group.get_students()
-    
+
     # Получаем все уроки модуля
     lessons = module.lessons_list if module else []
-    
+
     # Собираем прогресс по каждому уроку
     lesson_progress = []
-    
+
     for lesson in lessons:
         total_progress = 0
         student_count = 0
-        
+
         for student in students:
             progress = ProgressModule.query.filter_by(
                 user_id=student.id,
                 module_id=group.module_id
             ).first()
-            
+
             if progress:
                 if isinstance(progress.progress, str):
                     progress_data = json.loads(progress.progress)
                 else:
                     progress_data = progress.progress if progress.progress else {}
-                
-                lesson_data = progress_data.get('lessons', {}).get(str(lesson.id), {})
-                
+
+                lesson_data = progress_data.get(
+                    'lessons', {}).get(str(lesson.id), {})
+
                 # Вычисляем прогресс урока
                 total_items = 0
                 completed_items = 0
-                
+
                 # Теория
                 total_items += 1
                 if lesson_data.get('theory_viewed', False):
                     completed_items += 1
-                
+
                 # Тесты
                 for test_data in lesson_data.get('tests', {}).values():
                     total_items += 1
                     if test_data.get('completed', False):
                         completed_items += 1
-                
+
                 # Задания
                 for task_data in lesson_data.get('tasks', {}).values():
                     total_items += 1
                     if task_data.get('completed', False):
                         completed_items += 1
-                
+
                 if total_items > 0:
                     lesson_percent = int((completed_items / total_items) * 100)
                     total_progress += lesson_percent
                     student_count += 1
-        
+
         if student_count > 0:
             avg_progress = int(total_progress / student_count)
         else:
             avg_progress = 0
-        
+
         lesson_progress.append({
             'name': lesson.title[:30],
             'progress': avg_progress
         })
-    
+
     # Вычисляем средний прогресс группы
     if students:
         total_student_progress = 0
@@ -1409,14 +1427,14 @@ def teacher_group_detail(group_id):
         avg_group_progress = int(total_student_progress / len(students))
     else:
         avg_group_progress = 0
-    
-    return render_template('teacher/group_detail.html', 
-                         group=group, 
-                         module=module, 
-                         students=students,
-                         chat=chat,
-                         lesson_progress=lesson_progress,
-                         avg_group_progress=avg_group_progress)
+
+    return render_template('teacher/group_detail.html',
+                           group=group,
+                           module=module,
+                           students=students,
+                           chat=chat,
+                           lesson_progress=lesson_progress,
+                           avg_group_progress=avg_group_progress)
 
 
 # @app.route('/teacher/group/<int:group_id>/add_student', methods=['POST'])

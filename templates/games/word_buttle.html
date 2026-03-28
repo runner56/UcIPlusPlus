@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+
+{% block title %}Python Словобой | CodeQuest{% endblock %}
+
+{% block content %}
+<style>
+    .python-vocab {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .stats {
+        display: flex;
+        gap: 30px;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .target-word {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .current-word {
+        font-size: 48px;
+        font-weight: bold;
+        color: #333;
+        background: white;
+        display: inline-block;
+        padding: 20px 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        font-family: 'Courier New', monospace;
+    }
+
+    .options-area {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .option-btn {
+        padding: 15px 20px;
+        font-size: 16px;
+        border: 3px solid #667eea;
+        background: white;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 500;
+    }
+
+    .option-btn:hover {
+        transform: translateY(-2px);
+        border-color: #764ba2;
+        background: #f8f9ff;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .option-correct {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        border-color: #4caf50;
+    }
+
+    .option-wrong {
+        background: linear-gradient(135deg, #f44336, #da190b);
+        color: white;
+        border-color: #f44336;
+    }
+
+    .disabled-option {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .disabled-option:hover {
+        transform: none;
+    }
+
+    .feedback {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 18px;
+        min-height: 50px;
+    }
+
+    .success {
+        color: #4caf50;
+        animation: bounce 0.5s ease;
+    }
+
+    .error {
+        color: #f44336;
+        animation: shake 0.3s ease;
+    }
+
+    .game-controls {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .level-progress {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .streak-counter {
+        text-align: center;
+        margin: 20px 0;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: inline-block;
+        width: auto;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .streak-fire {
+        background: linear-gradient(135deg, #ff9800, #ff5722);
+        color: white;
+        animation: pulse 1s infinite;
+    }
+
+    .word-list {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+
+    .word-list h3 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .completed-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .word-badge {
+        background: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        color: #667eea;
+        border: 1px solid #667eea;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    @media (max-width: 768px) {
+        .current-word {
+            font-size: 32px;
+            padding: 15px 30px;
+        }
+        
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .option-btn {
+            font-size: 14px;
+            padding: 12px;
+        }
+        
+        .stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="python-vocab">
+    <div class="game-header">
+        <h2>📚 Python Словобой</h2>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-value" id="score">0</span>
+                <span class="stat-label">Очки</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="level">1</span>
+                <span class="stat-label">Уровень</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="streak">0</span>
+                <span class="stat-label">🔥 Серия</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="target-word">
+        <div class="current-word" id="currentWord">Начните игру</div>
+    </div>
+
+    <div class="options-area">
+        <div class="options-grid" id="optionsContainer">
+            <button class="option-btn">Загрузка...</button>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+        👆 Нажмите "Начать игру" и проверь свои знания Python!
+    </div>
+
+    <div class="level-progress">
+        <div>Прогресс уровня: <span id="progressText">0/10</span></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="streak-counter" id="streakCounter">
+        🔥 Серия правильных ответов: <span id="streakValue">0</span>
+    </div>
+
+    <div class="game-controls">
+        <button class="btn btn-primary" id="startGame">▶ Начать игру</button>
+        <button class="btn btn-secondary" id="resetGame">🔄 Сбросить</button>
+    </div>
+
+    <div class="word-list">
+        <h3>📝 Выученные термины</h3>
+        <div class="completed-words" id="completedWords">
+            <em>Пока нет выученных терминов</em>
+        </div>
+    </div>
+</div>
+
+<script>
+    class PythonVocabGame {
+        constructor() {
+            this.score = 0;
+            this.level = 1;
+            this.streak = 0;
+            this.questionsAnswered = 0;
+            this.gameActive = false;
+            this.currentQuestion = null;
+            this.completedTerms = [];
+            this.questionsPerLevel = 10;
+            
+            // Словарь терминов Python с определениями
+            this.vocabulary = {
+                1: [
+                    { term: "print()", definition: "Выводит текст на экран", options: ["Выводит текст на экран", "Считывает ввод пользователя", "Создает новую переменную", "Завершает программу"] },
+                    { term: "input()", definition: "Считывает ввод пользователя", options: ["Считывает ввод пользователя", "Выводит текст", "Открывает файл", "Создает список"] },
+                    { term: "len()", definition: "Возвращает длину объекта", options: ["Возвращает длину объекта", "Создает новый список", "Удаляет элемент", "Копирует объект"] },
+                    { term: "int()", definition: "Преобразует в целое число", options: ["Преобразует в целое число", "Преобразует в строку", "Преобразует в дробное число", "Преобразует в список"] },
+                    { term: "str()", definition: "Преобразует в строку", options: ["Преобразует в строку", "Преобразует в число", "Преобразует в список", "Преобразует в словарь"] },
+                    { term: "list", definition: "Изменяемая последовательность", options: ["Изменяемая последовательность", "Неизменяемая последовательность", "Коллекция ключ-значение", "Множество уникальных элементов"] },
+                    { term: "dict", definition: "Коллекция пар ключ-значение", options: ["Коллекция ключ-значение", "Упорядоченная последовательность", "Множество уникальных элементов", "Двумерный массив"] },
+                    { term: "range()", definition: "Генерирует последовательность чисел", options: ["Генерирует числа", "Создает список", "Сортирует элементы", "Фильтрует данные"] },
+                    { term: "type()", definition: "Возвращает тип объекта", options: ["Возвращает тип объекта", "Проверяет наличие", "Создает новый тип", "Преобразует тип"] },
+                    { term: "bool", definition: "Логический тип (True/False)", options: ["Логический тип", "Целое число", "Строковый тип", "Вещественное число"] }
+                ],
+                2: [
+                    { term: "if", definition: "Условный оператор", options: ["Условный оператор", "Цикл", "Функция", "Импорт модуля"] },
+                    { term: "for", definition: "Цикл для перебора элементов", options: ["Цикл для перебора", "Условный оператор", "Функция", "Класс"] },
+                    { term: "while", definition: "Цикл с условием", options: ["Цикл с условием", "Цикл для перебора", "Условный оператор", "Бесконечный цикл"] },
+                    { term: "def", definition: "Создание функции", options: ["Создание функции", "Создание класса", "Импорт модуля", "Вызов функции"] },
+                    { term: "return", definition: "Возвращает значение из функции", options: ["Возвращает значение", "Завершает программу", "Выводит на экран", "Создает переменную"] },
+                    { term: "break", definition: "Прерывает выполнение цикла", options: ["Прерывает цикл", "Пропускает итерацию", "Завершает программу", "Выходит из функции"] },
+                    { term: "continue", definition: "Переходит к следующей итерации", options: ["Следующая итерация", "Прерывает цикл", "Завершает программу", "Повторяет цикл"] },
+                    { term: "else", definition: "Блок кода при ложном условии", options: ["При ложном условии", "При истинном условии", "В любом случае", "После цикла"] },
+                    { term: "elif", definition: "Сокращение от else if", options: ["Сокращение от else if", "Иначе если", "Иначе", "Если"] },
+                    { term: "class", definition: "Шаблон для создания объектов", options: ["Шаблон объекта", "Функция", "Модуль", "Переменная"] }
+                ],
+                3: [
+                    { term: "import", definition: "Импортирует модуль", options: ["Импортирует модуль", "Экспортирует данные", "Удаляет модуль", "Создает модуль"] },
+                    { term: "try", definition: "Блок для обработки исключений", options: ["Обработка ошибок", "Выполнение кода", "Условный оператор", "Цикл"] },
+                    { term: "except", definition: "Перехватывает исключение", options: ["Перехватывает ошибку", "Вызывает ошибку", "Игнорирует ошибку", "Логирует ошибку"] },
+                    { term: "finally", definition: "Выполняется всегда", options: ["Выполняется всегда", "При ошибке", "При успехе", "Никогда"] },
+                    { term: "with", definition: "Менеджер контекста", options: ["Менеджер контекста", "Условный оператор", "Цикл", "Функция"] },
+                    { term: "open()", definition: "Открывает файл", options: ["Открывает файл", "Закрывает файл", "Создает файл", "Удаляет файл"] },
+                    { term: "read()", definition: "Читает содержимое файла", options: ["Читает файл", "Записывает в файл", "Закрывает файл", "Открывает файл"] },
+                    { term: "write()", definition: "Записывает данные в файл", options: ["Записывает в файл", "Читает файл", "Закрывает файл", "Создает файл"] },
+                    { term: "close()", definition: "Закрывает файл", options: ["Закрывает файл", "Открывает файл", "Сохраняет файл", "Удаляет файл"] },
+                    { term: "as", definition: "Создает псевдоним", options: ["Создает псевдоним", "Как", "Присваивает", "Импортирует"] }
+                ],
+                4: [
+                    { term: "lambda", definition: "Анонимная функция", options: ["Анонимная функция", "Именованная функция", "Класс", "Модуль"] },
+                    { term: "map()", definition: "Применяет функцию к каждому элементу", options: ["Применяет функцию", "Фильтрует элементы", "Сортирует список", "Объединяет списки"] },
+                    { term: "filter()", definition: "Фильтрует элементы по условию", options: ["Фильтрует элементы", "Применяет функцию", "Сортирует список", "Группирует элементы"] },
+                    { term: "zip()", definition: "Объединяет несколько списков", options: ["Объединяет списки", "Разделяет список", "Сортирует список", "Фильтрует список"] },
+                    { term: "enumerate()", definition: "Возвращает индекс и значение", options: ["Индекс и значение", "Только индекс", "Только значение", "Ключ и значение"] },
+                    { term: "sorted()", definition: "Возвращает отсортированный список", options: ["Сортирует список", "Переворачивает список", "Очищает список", "Копирует список"] },
+                    { term: "reversed()", definition: "Возвращает обратный итератор", options: ["Обратный порядок", "Прямой порядок", "Сортировка", "Фильтрация"] },
+                    { term: "sum()", definition: "Суммирует элементы", options: ["Суммирует элементы", "Умножает элементы", "Находит среднее", "Находит максимум"] },
+                    { term: "min()", definition: "Находит минимальное значение", options: ["Минимальное значение", "Максимальное значение", "Среднее значение", "Сумма значений"] },
+                    { term: "max()", definition: "Находит максимальное значение", options: ["Максимальное значение", "Минимальное значение", "Среднее значение", "Сумма значений"] }
+                ],
+                5: [
+                    { term: "__init__", definition: "Конструктор класса", options: ["Конструктор класса", "Деструктор", "Метод класса", "Статический метод"] },
+                    { term: "self", definition: "Ссылка на экземпляр класса", options: ["Ссылка на экземпляр", "Класс", "Модуль", "Функция"] },
+                    { term: "super()", definition: "Вызов метода родительского класса", options: ["Родительский класс", "Дочерний класс", "Текущий класс", "Базовый класс"] },
+                    { term: "staticmethod", definition: "Статический метод класса", options: ["Статический метод", "Метод класса", "Абстрактный метод", "Магический метод"] },
+                    { term: "classmethod", definition: "Метод класса", options: ["Метод класса", "Статический метод", "Абстрактный метод", "Магический метод"] },
+                    { term: "property", definition: "Свойство класса", options: ["Свойство класса", "Метод класса", "Атрибут класса", "Декоратор"] },
+                    { term: "yield", definition: "Создает генератор", options: ["Создает генератор", "Возвращает значение", "Прерывает функцию", "Выводит результат"] },
+                    { term: "async", definition: "Асинхронная функция", options: ["Асинхронная функция", "Синхронная функция", "Поток", "Процесс"] },
+                    { term: "await", definition: "Ожидание асинхронной операции", options: ["Ожидание операции", "Запуск операции", "Отмена операции", "Повтор операции"] },
+                    { term: "decorator", definition: "Функция, модифицирующая другую функцию", options: ["Модифицирует функцию", "Создает функцию", "Удаляет функцию", "Копирует функцию"] }
+                ]
+            };
+            
+            this.initElements();
+            this.bindEvents();
+        }
+        
+        initElements() {
+            this.scoreElement = document.getElementById('score');
+            this.levelElement = document.getElementById('level');
+            this.streakElement = document.getElementById('streak');
+            this.streakValueElement = document.getElementById('streakValue');
+            this.currentWordElement = document.getElementById('currentWord');
+            this.optionsContainer = document.getElementById('optionsContainer');
+            this.feedbackElement = document.getElementById('feedback');
+            this.progressText = document.getElementById('progressText');
+            this.progressFill = document.getElementById('progressFill');
+            this.completedWordsElement = document.getElementById('completedWords');
+            this.startBtn = document.getElementById('startGame');
+            this.resetBtn = document.getElementById('resetGame');
+        }
+        
+        bindEvents() {
+            this.startBtn.addEventListener('click', () => this.startGame());
+            this.resetBtn.addEventListener('click', () => this.resetGame());
+        }
+        
+        startGame() {
+            if (!this.gameActive) {
+                this.gameActive = true;
+                this.score = 0;
+                this.level = 1;
+                this.streak = 0;
+                this.completedTerms = [];
+                this.loadLevel();
+                this.updateDisplay();
+                this.updateCompletedWords();
+                this.feedbackElement.innerHTML = '🎯 Игра началась! Выбери правильное определение!';
+                this.feedbackElement.className = 'feedback';
+            }
+        }
+        
+        resetGame() {
+            this.gameActive = false;
+            this.score = 0;
+            this.level = 1;
+            this.streak = 0;
+            this.completedTerms = [];
+            this.updateDisplay();
+            this.updateCompletedWords();
+            this.feedbackElement.innerHTML = '🔄 Игра сброшена. Нажмите "Начать игру"!';
+            this.feedbackElement.className = 'feedback';
+            this.optionsContainer.innerHTML = '<button class="option-btn">Нажмите "Старт"</button>';
+            this.currentWordElement.textContent = 'Начните игру';
+        }
+        
+        loadLevel() {
+            const levelData = this.vocabulary[this.level];
+            if (!levelData) {
+                this.gameWon();
+                return;
+            }
+            
+            this.currentQuestions = [...levelData];
+            this.loadQuestion();
+            this.updateProgress();
+        }
+        
+        loadQuestion() {
+            if (this.currentQuestions.length === 0) {
+                this.levelUp();
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * this.currentQuestions.length);
+            this.currentQuestion = this.currentQuestions[randomIndex];
+            
+            this.currentWordElement.textContent = this.currentQuestion.term;
+            
+            const options = [...this.currentQuestion.options];
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            this.optionsContainer.innerHTML = options.map(opt => `
+                <button class="option-btn" onclick="window.game.checkAnswer('${opt.replace(/'/g, "\\'")}')">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+        
+        checkAnswer(selected) {
+            if (!this.gameActive) {
+                this.feedbackElement.innerHTML = 'Игра не активна! Нажмите "Начать игру".';
+                this.feedbackElement.className = 'feedback error';
+                return;
+            }
+            
+            const isCorrect = (selected === this.currentQuestion.definition);
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            if (isCorrect) {
+                const points = 10 + Math.floor(this.streak / 2) * 5;
+                this.score += points;
+                this.streak++;
+                
+                this.feedbackElement.innerHTML = `✅ Верно! +${points} очков! Серия: ${this.streak} 🔥`;
+                this.feedbackElement.className = 'feedback success';
+                
+                buttons.forEach(btn => {
+                    if (btn.textContent === this.currentQuestion.definition) {
+                        btn.classList.add('option-correct');
+                    }
+                    btn.disabled = true;
+                    btn.classList.add('disabled-option');
+                });
+                
+                this.completedTerms.push(this.currentQuestion.term);
+                this.updateCompletedWords();
+                
+                const index = this.currentQuestions.findIndex(q => q.term === this.currentQuestion.term);
+                if (index > -1) {
+                    this.currentQuestions.splice(index, 1);
+                }
+                
+                setTimeout(() => {
+                    if (this.currentQuestions.length === 0) {
+                        this.levelUp();
+                    } else {
+                        this.loadQuestion();
+                    }
+                    this.updateDisplay();
+                    this.updateProgress();
+                }, 1000);
+                
+            } else {
+                this.streak = 0;
+                this.score = Math.max(0, this.score - 5);
+                
+                this.feedbackElement.innerHTML = `❌ Неправильно! "${this.currentQuestion.term}" — это ${this.currentQuestion.definition}. Серия сброшена. -5 очков.`;
+                this.feedbackElement.className = 'feedback error';
+                
+                buttons.forEach(btn => {
+                    if (btn.textContent === this.currentQuestion.definition) {
+                        btn.classList.add('option-correct');
+                    }
+                    if (btn.textContent === selected) {
+                        btn.classList.add('option-wrong');
+                    }
+                    btn.disabled = true;
+                    btn.classList.add('disabled-option');
+                });
+                
+                setTimeout(() => {
+                    this.loadQuestion();
+                    this.updateDisplay();
+                }, 1500);
+            }
+            
+            this.updateStreakDisplay();
+        }
+        
+        levelUp() {
+            this.level++;
+            
+            if (this.level <= 5) {
+                const levelBonus = this.level * 50;
+                this.score += levelBonus;
+                
+                let levelMessage = '';
+                switch(this.level) {
+                    case 2: levelMessage = 'Управление потоком!'; break;
+                    case 3: levelMessage = 'Работа с файлами!'; break;
+                    case 4: levelMessage = 'Функциональное программирование!'; break;
+                    case 5: levelMessage = 'Продвинутый Python!'; break;
+                }
+                
+                this.feedbackElement.innerHTML = `🎉 Уровень ${this.level}! ${levelMessage} +${levelBonus} бонусных очков! 🚀`;
+                this.feedbackElement.className = 'feedback success';
+                this.loadLevel();
+                
+                this.levelElement.style.animation = 'bounce 0.5s ease';
+                setTimeout(() => {
+                    this.levelElement.style.animation = '';
+                }, 500);
+            } else {
+                this.gameWon();
+            }
+            
+            this.updateDisplay();
+        }
+        
+        gameWon() {
+            this.gameActive = false;
+            this.feedbackElement.innerHTML = `🏆 ПОБЕДА! Вы прошли все уровни! Финальный счёт: ${this.score} очков! 🐍✨`;
+            this.feedbackElement.className = 'feedback success';
+            this.currentWordElement.textContent = 'Ты знаешь Python! 🎉';
+            this.optionsContainer.innerHTML = '<button class="option-btn" disabled>Ты чемпион! 🏆</button>';
+        }
+        
+        updateDisplay() {
+            this.scoreElement.textContent = this.score;
+            this.levelElement.textContent = this.level;
+            this.updateStreakDisplay();
+        }
+        
+        updateStreakDisplay() {
+            this.streakElement.textContent = this.streak;
+            this.streakValueElement.textContent = this.streak;
+            if (this.streak >= 3) {
+                document.querySelector('.streak-counter').classList.add('streak-fire');
+            } else {
+                document.querySelector('.streak-counter').classList.remove('streak-fire');
+            }
+        }
+        
+        updateProgress() {
+            const total = this.questionsPerLevel;
+            const answered = total - this.currentQuestions.length;
+            const progress = (answered / total) * 100;
+            this.progressFill.style.width = `${progress}%`;
+            this.progressText.textContent = `${answered}/${total}`;
+        }
+        
+        updateCompletedWords() {
+            if (this.completedTerms.length === 0) {
+                this.completedWordsElement.innerHTML = '<em>Пока нет выученных терминов</em>';
+                return;
+            }
+            
+            const wordsHtml = this.completedTerms.slice(-20).map(term => 
+                `<span class="word-badge">${term}</span>`
+            ).join('');
+            
+            this.completedWordsElement.innerHTML = wordsHtml;
+        }
+    }
+    
+    let game;
+    document.addEventListener('DOMContentLoaded', () => {
+        game = new PythonVocabGame();
+        window.game = game;
+    });
+</script>
+{% endblock %}
