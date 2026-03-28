@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}Клавиатурный тренажёр | CodeQuest{% endblock %}
+
+{% block content %}
+<style>
+    .keyboard-trainer {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .stats {
+        display: flex;
+        gap: 30px;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .target-word {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .current-word {
+        font-size: 48px;
+        font-weight: bold;
+        color: #333;
+        background: white;
+        display: inline-block;
+        padding: 20px 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        letter-spacing: 5px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .input-area {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    #userInput {
+        font-size: 24px;
+        padding: 15px 25px;
+        width: 400px;
+        border: 3px solid #667eea;
+        border-radius: 10px;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+        transition: all 0.3s;
+    }
+
+    #userInput:focus {
+        outline: none;
+        border-color: #764ba2;
+        box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .feedback {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 18px;
+        min-height: 50px;
+    }
+
+    .success {
+        color: #4caf50;
+        animation: bounce 0.5s ease;
+    }
+
+    .error {
+        color: #f44336;
+        animation: shake 0.3s ease;
+    }
+
+    .game-controls {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .level-progress {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .word-list {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+
+    .word-list h3 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .completed-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .word-badge {
+        background: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        color: #667eea;
+        border: 1px solid #667eea;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    @media (max-width: 768px) {
+        .current-word {
+            font-size: 32px;
+            padding: 15px 30px;
+        }
+        
+        #userInput {
+            width: 90%;
+            font-size: 18px;
+        }
+        
+        .stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="keyboard-trainer">
+    <div class="game-header">
+        <h2>🎮 Клавиатурный тренажёр</h2>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-value" id="score">0</span>
+                <span class="stat-label">Очки</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="level">1</span>
+                <span class="stat-label">Уровень</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="accuracy">100</span>
+                <span class="stat-label">Точность %</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="target-word">
+        <div class="current-word" id="currentWord">Начните игру</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Введите слово здесь..." autocomplete="off">
+    </div>
+
+    <div class="feedback" id="feedback">
+        👆 Нажмите "Начать игру" и вводите слова!
+    </div>
+
+    <div class="level-progress">
+        <div>Прогресс уровня: <span id="progressText">0/5</span></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="game-controls">
+        <button class="btn btn-primary" id="startGame">▶ Начать игру</button>
+        <button class="btn btn-secondary" id="resetGame">🔄 Сбросить</button>
+    </div>
+
+    <div class="word-list">
+        <h3>📝 Пройденные слова</h3>
+        <div class="completed-words" id="completedWords">
+            <em>Пока нет пройденных слов</em>
+        </div>
+    </div>
+</div>
+
+<script>
+    class KeyboardTrainer {
+        constructor() {
+            this.score = 0;
+            this.level = 1;
+            this.wordsTyped = 0;
+            this.totalTyped = 0;
+            this.correctTyped = 0;
+            this.currentWord = '';
+            this.gameActive = false;
+            this.completedWords = [];
+            
+            // Слова по уровням сложности
+            this.wordsByLevel = {
+                1: ['кот', 'дом', 'лес', 'мир', 'сон', 'день', 'год', 'час', 'раз', 'два'],
+                2: ['котенок', 'дерево', 'солнце', 'компьютер', 'телефон', 'работа', 'учеба', 'отдых'],
+                3: ['программирование', 'клавиатура', 'тренажер', 'разработка', 'алгоритм', 'технологии'],
+                4: ['экстраординарный', 'квалификация', 'идентификация', 'рекомендация', 'сертификация'],
+                5: ['суперкалифрагилистикэкспиалидошес', 'пневмоультрамикроскопический', 'контрпримерконтрпример']
+            };
+            
+            this.initElements();
+            this.bindEvents();
+            this.loadWords();
+        }
+        
+        initElements() {
+            this.scoreElement = document.getElementById('score');
+            this.levelElement = document.getElementById('level');
+            this.accuracyElement = document.getElementById('accuracy');
+            this.currentWordElement = document.getElementById('currentWord');
+            this.userInput = document.getElementById('userInput');
+            this.feedbackElement = document.getElementById('feedback');
+            this.progressText = document.getElementById('progressText');
+            this.progressFill = document.getElementById('progressFill');
+            this.completedWordsElement = document.getElementById('completedWords');
+            this.startBtn = document.getElementById('startGame');
+            this.resetBtn = document.getElementById('resetGame');
+        }
+        
+        bindEvents() {
+            this.startBtn.addEventListener('click', () => this.startGame());
+            this.resetBtn.addEventListener('click', () => this.resetGame());
+            this.userInput.addEventListener('input', (e) => this.checkInput(e.target.value));
+            this.userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.checkInput(this.userInput.value, true);
+                }
+            });
+        }
+        
+        loadWords() {
+            this.words = [...this.wordsByLevel[this.level]];
+            this.currentWord = this.getRandomWord();
+            this.updateDisplay();
+        }
+        
+        getRandomWord() {
+            if (this.words.length === 0) {
+                this.levelUp();
+                return this.getRandomWord();
+            }
+            const randomIndex = Math.floor(Math.random() * this.words.length);
+            return this.words[randomIndex];
+        }
+        
+        removeWord(word) {
+            const index = this.words.indexOf(word);
+            if (index > -1) {
+                this.words.splice(index, 1);
+            }
+        }
+        
+        startGame() {
+            if (!this.gameActive) {
+                this.gameActive = true;
+                this.userInput.disabled = false;
+                this.userInput.focus();
+                this.feedbackElement.innerHTML = '🎯 Игра началась! Вводите слова как можно быстрее!';
+                this.feedbackElement.className = 'feedback';
+                this.loadWords();
+                this.updateDisplay();
+            }
+        }
+        
+        resetGame() {
+            this.gameActive = false;
+            this.score = 0;
+            this.level = 1;
+            this.wordsTyped = 0;
+            this.totalTyped = 0;
+            this.correctTyped = 0;
+            this.completedWords = [];
+            this.userInput.value = '';
+            this.userInput.disabled = true;
+            this.loadWords();
+            this.updateDisplay();
+            this.updateCompletedWords();
+            this.feedbackElement.innerHTML = '🔄 Игра сброшена. Нажмите "Начать игру"!';
+            this.feedbackElement.className = 'feedback';
+        }
+        
+        checkInput(input, forceCheck = false) {
+            if (!this.gameActive) return;
+            
+            if (input.toLowerCase() === this.currentWord.toLowerCase()) {
+                // Правильный ввод
+                this.correctTyped++;
+                this.totalTyped++;
+                this.wordsTyped++;
+                
+                // Начисление очков в зависимости от длины слова
+                const points = Math.max(10, this.currentWord.length * 2);
+                this.score += points;
+                
+                // Добавляем слово в список пройденных
+                this.completedWords.push(this.currentWord);
+                this.updateCompletedWords();
+                
+                // Удаляем слово из текущего набора
+                this.removeWord(this.currentWord);
+                
+                // Показываем успешный результат
+                this.feedbackElement.innerHTML = `✅ Верно! +${points} очков! 🎉`;
+                this.feedbackElement.className = 'feedback success';
+                
+                // Выбираем следующее слово
+                if (this.words.length === 0) {
+                    this.levelUp();
+                } else {
+                    this.currentWord = this.getRandomWord();
+                }
+                
+                this.updateDisplay();
+                this.userInput.value = '';
+                
+                // Анимация успеха
+                this.currentWordElement.style.animation = 'none';
+                setTimeout(() => {
+                    this.currentWordElement.style.animation = '';
+                }, 10);
+                
+            } else if (forceCheck || input.length === this.currentWord.length) {
+                // Неправильный ввод
+                this.totalTyped++;
+                this.feedbackElement.innerHTML = `❌ Неправильно! Нужно: "${this.currentWord}"`;
+                this.feedbackElement.className = 'feedback error';
+                this.userInput.value = '';
+                
+                // Штраф за ошибку
+                this.score = Math.max(0, this.score - 5);
+                this.updateDisplay();
+                
+                // Анимация ошибки
+                this.currentWordElement.style.animation = 'shake 0.3s ease';
+                setTimeout(() => {
+                    this.currentWordElement.style.animation = '';
+                }, 300);
+            }
+            
+            this.updateAccuracy();
+        }
+        
+        levelUp() {
+            this.level++;
+            this.wordsTyped = 0;
+            
+            if (this.level <= 5) {
+                this.words = [...this.wordsByLevel[this.level]];
+                this.currentWord = this.getRandomWord();
+                
+                // Бонус за переход на новый уровень
+                const levelBonus = this.level * 50;
+                this.score += levelBonus;
+                
+                this.feedbackElement.innerHTML = `🎉 Уровень ${this.level}! +${levelBonus} бонусных очков! 🚀`;
+                this.feedbackElement.className = 'feedback success';
+                
+                // Анимация повышения уровня
+                this.levelElement.style.animation = 'bounce 0.5s ease';
+                setTimeout(() => {
+                    this.levelElement.style.animation = '';
+                }, 500);
+            } else {
+                // Победа в игре
+                this.gameActive = false;
+                this.userInput.disabled = true;
+                this.feedbackElement.innerHTML = `🏆 ПОБЕДА! Вы прошли все уровни! Финальный счёт: ${this.score} очков! 🎮`;
+                this.feedbackElement.className = 'feedback success';
+                this.currentWordElement.innerHTML = 'ПОБЕДА! 🏆';
+            }
+            
+            this.updateDisplay();
+        }
+        
+        updateAccuracy() {
+            const accuracy = this.totalTyped === 0 ? 100 : 
+                Math.round((this.correctTyped / this.totalTyped) * 100);
+            this.accuracyElement.textContent = accuracy;
+        }
+        
+        updateDisplay() {
+            this.scoreElement.textContent = this.score;
+            this.levelElement.textContent = this.level;
+            this.currentWordElement.textContent = this.currentWord || 'Игра окончена';
+            
+            // Обновляем прогресс уровня
+            const wordsNeeded = this.wordsByLevel[this.level]?.length || 5;
+            const progress = ((wordsNeeded - this.words.length) / wordsNeeded) * 100;
+            this.progressFill.style.width = `${progress}%`;
+            this.progressText.textContent = `${wordsNeeded - this.words.length}/${wordsNeeded}`;
+        }
+        
+        updateCompletedWords() {
+            if (this.completedWords.length === 0) {
+                this.completedWordsElement.innerHTML = '<em>Пока нет пройденных слов</em>';
+                return;
+            }
+            
+            const wordsHtml = this.completedWords.slice(-20).map(word => 
+                `<span class="word-badge">${word}</span>`
+            ).join('');
+            
+            this.completedWordsElement.innerHTML = wordsHtml;
+        }
+    }
+    
+    // Инициализация игры при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        const game = new KeyboardTrainer();
+    });
+</script>
+{% endblock %}

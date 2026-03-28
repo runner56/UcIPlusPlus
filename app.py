@@ -597,6 +597,16 @@ def delete_user(user_id):
     return redirect(url_for('admin_users'))
 
 
+# ============================================================
+# Управление ИГРАМИ
+# ============================================================
+@app.route('/game_keyboard')
+@login_required
+@role_required('student')
+def game_keyboard():
+    return render_template('games/keyboard.html')
+
+
 # ========== УПРАВЛЕНИЕ МОДУЛЯМИ (АДМИН) ==========
 @app.route('/admin/modules')
 @login_required
