@@ -622,7 +622,11 @@ def sertificates():
 def achievements():
     return render_template('student/achievements.html')
 
-
+@app.route('/student/store')
+@login_required
+@role_required('student')
+def store():
+    return render_template('student/store.html')
 
 
 # ========== УПРАВЛЕНИЕ МОДУЛЯМИ (АДМИН) ==========
