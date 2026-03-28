@@ -706,21 +706,15 @@ def student_achievements():
 
     return render_template('student/achievements.html', achievements=achievements_data)
 
-@app.route('/student/store')
-@login_required
-@role_required('student')
-def store():
-    return render_template('student/store.html')
-
-
-@app.route('/student/store')
-@login_required
-@role_required('student')
-def store():
-    return render_template('student/store.html')
 
 
 # ========== МАГАЗИН ==========
+@app.route('/student/store')
+@login_required
+@role_required('student')
+def store():
+    return render_template('student/store.html')
+
 
 @app.route('/shop/buy/<int:item_id>', methods=['POST'])
 @login_required
