@@ -39,3 +39,13 @@
 ```bash
 git clone https://github.com/runner56/UcIPlusPlus.git
 cd UcIPlusPlus
+
+### 2. Создание виртуального окружения
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+
+python3 -m venv venv
+source venv/bin/activate
