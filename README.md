@@ -60,8 +60,6 @@ pip install -r requirements.txt
 ```bash
 flask shell
 ```
-
-В интерактивной оболочке выполните:
 ```python
 >>> from app import db
 >>> db.create_all()
