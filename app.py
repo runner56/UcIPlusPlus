@@ -1251,41 +1251,102 @@ def teacher_create_group():
 @login_required
 @role_required('teacher', 'admin')
 def teacher_group_detail(group_id):
+    import json
     group = Group.query.get_or_404(group_id)
-
+    
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет доступа к этой группе', 'danger')
         return redirect(url_for('teacher_groups'))
-
+    
     module = Module.query.get(group.module_id)
     chat = group.get_chat()
-
-    # Получаем учеников через метод get_students()
     students = group.get_students()
-
-    # ОТЛАДКА: выводим в консоль
-    print(f"=== GROUP DETAIL DEBUG ===")
-    print(f"Group ID: {group.id}")
-    print(f"Group title: {group.title}")
-    print(f"Students count: {len(students)}")
-    for s in students:
-        print(f"  - {s.username} ({s.email})")
-    print(f"==========================")
-
-    # Получаем прогресс учеников
-    for student in students:
-        progress = ProgressModule.query.filter_by(
-            user_id=student.id,
-            module_id=group.module_id
-        ).first()
-        student.progress = progress.progress.get(
-            'percentage', 0) if progress else 0
-
-    return render_template('teacher/group_detail.html',
-                           group=group,
-                           module=module,
-                           students=students,
-                           chat=chat)
+    
+    # Получаем все уроки модуля
+    lessons = module.lessons_list if module else []
+    
+    # Собираем прогресс по каждому уроку
+    lesson_progress = []
+    
+    for lesson in lessons:
+        total_progress = 0
+        student_count = 0
+        
+        for student in students:
+            progress = ProgressModule.query.filter_by(
+                user_id=student.id,
+                module_id=group.module_id
+            ).first()
+            
+            if progress:
+                if isinstance(progress.progress, str):
+                    progress_data = json.loads(progress.progress)
+                else:
+                    progress_data = progress.progress if progress.progress else {}
+                
+                lesson_data = progress_data.get('lessons', {}).get(str(lesson.id), {})
+                
+                # Вычисляем прогресс урока
+                total_items = 0
+                completed_items = 0
+                
+                # Теория
+                total_items += 1
+                if lesson_data.get('theory_viewed', False):
+                    completed_items += 1
+                
+                # Тесты
+                for test_data in lesson_data.get('tests', {}).values():
+                    total_items += 1
+                    if test_data.get('completed', False):
+                        completed_items += 1
+                
+                # Задания
+                for task_data in lesson_data.get('tasks', {}).values():
+                    total_items += 1
+                    if task_data.get('completed', False):
+                        completed_items += 1
+                
+                if total_items > 0:
+                    lesson_percent = int((completed_items / total_items) * 100)
+                    total_progress += lesson_percent
+                    student_count += 1
+        
+        if student_count > 0:
+            avg_progress = int(total_progress / student_count)
+        else:
+            avg_progress = 0
+        
+        lesson_progress.append({
+            'name': lesson.title[:30],
+            'progress': avg_progress
+        })
+    
+    # Вычисляем средний прогресс группы
+    if students:
+        total_student_progress = 0
+        for student in students:
+            progress = ProgressModule.query.filter_by(
+                user_id=student.id,
+                module_id=group.module_id
+            ).first()
+            if progress:
+                if isinstance(progress.progress, str):
+                    progress_data = json.loads(progress.progress)
+                else:
+                    progress_data = progress.progress if progress.progress else {}
+                total_student_progress += progress_data.get('percentage', 0)
+        avg_group_progress = int(total_student_progress / len(students))
+    else:
+        avg_group_progress = 0
+    
+    return render_template('teacher/group_detail.html', 
+                         group=group, 
+                         module=module, 
+                         students=students,
+                         chat=chat,
+                         lesson_progress=lesson_progress,
+                         avg_group_progress=avg_group_progress)
 
 
 # @app.route('/teacher/group/<int:group_id>/add_student', methods=['POST'])

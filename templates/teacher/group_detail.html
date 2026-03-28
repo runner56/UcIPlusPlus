@@ -2,10 +2,69 @@
 
 {% block title %}{{ group.title }} | CodeQuest{% endblock %}
 
+{% block extra_css %}
+<style>
+    .progress-bar {
+        transition: width 0.5s ease;
+    }
+    
+    .student-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .table-hover tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+    
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    .btn-action {
+        transition: all 0.2s;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+    
+    .group-info-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: none;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <!-- Навигация -->
-    <nav aria-label="breadcrumb">
+    <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('teacher_dashboard') }}">Панель учителя</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('teacher_groups') }}">Мои группы</a></li>
@@ -17,7 +76,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h2 mb-0">
-                <i class="fas fa-chalkboard text-primary"></i> {{ group.title }}
+                <i class="fas fa-chalkboard-user text-primary"></i> {{ group.title }}
             </h1>
             <p class="text-muted mt-2">
                 <i class="fas fa-book"></i> Модуль: {{ module.title if module else 'Не указан' }}
@@ -27,11 +86,11 @@
         </div>
         <div>
             {% if chat %}
-            <a href="{{ url_for('chat_room', chat_id=chat.id) }}" class="btn btn-outline-primary me-2">
+            <a href="{{ url_for('chat_room', chat_id=chat.id) }}" class="btn btn-outline-primary me-2 btn-action">
                 <i class="fas fa-comments"></i> Чат группы
             </a>
             {% endif %}
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <button class="btn btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                 <i class="fas fa-user-plus"></i> Добавить ученика
             </button>
         </div>
@@ -40,9 +99,12 @@
     <div class="row">
         <!-- Список учеников -->
         <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-user-graduate"></i> Ученики группы</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-graduate text-primary"></i> Ученики группы
+                        <span class="badge bg-secondary ms-2">{{ students|length }}</span>
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     {% if students and students|length > 0 %}
@@ -50,28 +112,29 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Ученик</th>
-                                    <th>Email</th>
-                                    <th>Прогресс</th>
-                                    <th>ITCoins</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
+                                    <th style="width: 35%">Ученик</th>
+                                    <th style="width: 30%">Email</th>
+                                    <th style="width: 20%">Прогресс</th>
+                                    <th style="width: 15%">ITCoins</th>
+                                    <th style="width: 20%">Действия</th>
+                                </thead>
                             <tbody>
                                 {% for student in students %}
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <img src="{{ url_for('static', filename=student.get_photo_url()) }}" 
-                                                 class="rounded-circle me-2" width="32" height="32">
+                                                 class="student-avatar me-2"
+                                                 onerror="this.src='{{ url_for('static', filename='uploads/users/default_avatar.png') }}'">
                                             <strong>{{ student.username }}</strong>
                                         </div>
                                     </td>
-                                    <td>{{ student.email }}</td>
+                                    <td class="text-muted small">{{ student.email }}</td>
                                     <td>
-                                        <div class="progress" style="height: 20px; width: 120px;">
-                                            <div class="progress-bar bg-success" style="width: {{ student.progress|default(0) }}%">
-                                                {{ student.progress|default(0) }}%
+                                        {% set student_progress = student.progress|default(0) %}
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar" style="width: {{ student_progress }}%">
+                                                {{ student_progress }}%
                                             </div>
                                         </div>
                                     </td>
@@ -81,16 +144,21 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('parent_child_progress', child_id=student.id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-chart-line"></i>
-                                        </a>
-                                        <form action="{{ url_for('teacher_remove_student', group_id=group.id, student_id=student.id) }}" 
-                                              method="POST" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-danger" 
-                                                    onclick="return confirm('Удалить {{ student.username }} из группы?')">
-                                                <i class="fas fa-user-minus"></i>
-                                            </button>
-                                        </form>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('parent_child_progress', child_id=student.id) }}" 
+                                               class="btn btn-outline-info btn-action"
+                                               title="Детальный отчет">
+                                                <i class="fas fa-chart-line"></i>
+                                            </a>
+                                            <form action="{{ url_for('teacher_remove_student', group_id=group.id, student_id=student.id) }}" 
+                                                  method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-outline-danger btn-action" 
+                                                        onclick="return confirm('Удалить {{ student.username }} из группы?')"
+                                                        title="Удалить">
+                                                    <i class="fas fa-user-minus"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -100,7 +168,8 @@
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-users fa-4x text-muted mb-3"></i>
-                        <p class="text-muted">В группе пока нет учеников</p>
+                        <h5>В группе пока нет учеников</h5>
+                        <p class="text-muted">Добавьте первого ученика, чтобы начать обучение</p>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                             <i class="fas fa-user-plus"></i> Добавить первого ученика
                         </button>
@@ -109,50 +178,83 @@
                 </div>
             </div>
 
-            <!-- Прогресс по модулям -->
-            <div class="card shadow-sm mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Прогресс группы</h5>
+            <!-- Прогресс группы по урокам -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-primary"></i> Прогресс группы по урокам
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="groupProgressChart" height="100"></canvas>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Средний прогресс группы</span>
+                            <span class="fw-bold text-primary">{{ avg_group_progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" style="width: {{ avg_group_progress }}%"></div>
+                        </div>
+                    </div>
+                    <canvas id="groupProgressChart" height="250"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Информация о группе -->
         <div class="col-lg-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Информация о группе</h5>
+            <div class="card shadow-sm border-0 group-info-card mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary"></i> Информация о группе
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Дата создания:</strong> {{ group.created_at.strftime('%d.%m.%Y') }}</p>
-                    <p><strong>Всего учеников:</strong> {{ students|length if students else 0 }}</p>
-                    <p><strong>Средний прогресс:</strong> {{ group.average_progress|default(0) }}%</p>
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="stat-number">{{ students|length if students else 0 }}</div>
+                            <div class="stat-label">Учеников</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-number">{{ avg_group_progress }}%</div>
+                            <div class="stat-label">Средний прогресс</div>
+                        </div>
+                    </div>
                     <hr>
-                    <p><strong>Модуль:</strong> {{ module.title if module else 'Не указан' }}</p>
-                    <p><strong>Уроков в модуле:</strong> {{ module.lessons_list|length if module else 0 }}</p>
-                    <a href="{{ url_for('student_module', module_id=module.id) }}" class="btn btn-sm btn-outline-primary w-100">
+                    <p class="mb-2">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        <strong>Дата создания:</strong> {{ group.created_at.strftime('%d.%m.%Y') }}
+                    </p>
+                    <p class="mb-2">
+                        <i class="fas fa-book text-primary me-2"></i>
+                        <strong>Модуль:</strong> {{ module.title if module else 'Не указан' }}
+                    </p>
+                    <p class="mb-3">
+                        <i class="fas fa-list text-primary me-2"></i>
+                        <strong>Уроков в модуле:</strong> {{ module.lessons_list|length if module else 0 }}
+                    </p>
+                    <a href="{{ url_for('student_module', module_id=module.id) }}" 
+                       class="btn btn-outline-primary w-100 btn-action">
                         <i class="fas fa-eye"></i> Посмотреть модуль
                     </a>
                 </div>
             </div>
 
             <!-- Быстрые действия -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Быстрые действия</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-primary"></i> Быстрые действия
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary" onclick="sendNotification()">
+                        <button class="btn btn-outline-primary btn-action" onclick="sendNotification()">
                             <i class="fas fa-bell"></i> Отправить уведомление
                         </button>
-                        <button class="btn btn-outline-success" onclick="exportReport()">
+                        <button class="btn btn-outline-success btn-action" onclick="exportReport()">
                             <i class="fas fa-download"></i> Экспорт отчета
                         </button>
-                        <button class="btn btn-outline-info" onclick="generateQR()">
+                        <button class="btn btn-outline-info btn-action" onclick="generateQR()">
                             <i class="fas fa-qrcode"></i> Пригласить по QR-коду
                         </button>
                     </div>
@@ -167,15 +269,20 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Добавить ученика в группу</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus text-primary"></i> Добавить ученика в группу
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('teacher_add_student', group_id=group.id) }}" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Email ученика</label>
-                        <input type="email" name="email" class="form-control" required placeholder="student@yandex.ru">
-                        <small class="text-muted">Ученик должен быть зарегистрирован на платформе</small>
+                        <input type="email" name="email" class="form-control" required 
+                               placeholder="student@yandex.ru">
+                        <small class="text-muted">
+                            Ученик должен быть зарегистрирован на платформе
+                        </small>
                     </div>
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> Ученик получит доступ к чату группы сразу после добавления.
@@ -192,31 +299,94 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // График прогресса группы
+    // Данные из шаблона
+    const lessonNames = [{% for item in lesson_progress %}"{{ item.name }}"{% if not loop.last %}, {% endif %}{% endfor %}];
+    const lessonProgressData = [{% for item in lesson_progress %}{{ item.progress }}{% if not loop.last %}, {% endif %}{% endfor %}];
+    
+    // Если нет уроков, показываем заглушку
+    if (lessonNames.length === 0) {
+        lessonNames.push('Нет уроков');
+        lessonProgressData.push(0);
+    }
+    
+    // Создаем график
     const ctx = document.getElementById('groupProgressChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Урок 1', 'Урок 2', 'Урок 3', 'Урок 4', 'Урок 5'],
+            labels: lessonNames,
             datasets: [{
-                label: 'Процент выполнения',
-                data: [85, 70, 55, 40, 25],
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                label: 'Средний прогресс урока (%)',
+                data: lessonProgressData,
+                backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 1,
+                borderRadius: 8,
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 12 },
+                        usePointStyle: true,
+                        boxWidth: 8
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.raw + '%';
+                        }
+                    }
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
                     max: 100,
+                    title: {
+                        display: true,
+                        text: 'Прогресс (%)',
+                        font: { size: 11 }
+                    },
                     ticks: {
                         callback: function(value) {
                             return value + '%';
-                        }
+                        },
+                        stepSize: 20
+                    },
+                    grid: {
+                        color: '#e9ecef'
                     }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Уроки',
+                        font: { size: 11 }
+                    },
+                    ticks: {
+                        maxRotation: 35,
+                        minRotation: 35,
+                        font: { size: 10 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 20,
+                    bottom: 10
                 }
             }
         }
