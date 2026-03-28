@@ -32,7 +32,7 @@ def utility_processor():
 # ============================================================
 def create_default_users():
     """Создает базовых пользователей, если их нет в базе"""
-    
+
     default_users = [
         {
             'username': 'admin',
@@ -63,12 +63,12 @@ def create_default_users():
             'itcoins': 0
         }
     ]
-    
+
     created_users = []
-    
+
     for user_data in default_users:
         existing_user = User.query.filter_by(email=user_data['email']).first()
-        
+
         if not existing_user:
             new_user = User(
                 username=user_data['username'],
@@ -80,44 +80,47 @@ def create_default_users():
             new_user.set_password(user_data['password'])
             db.session.add(new_user)
             created_users.append(new_user)
-            print(f"✅ Создан пользователь: {user_data['username']} ({user_data['role']}) / пароль: 123456")
+            print(
+                f"✅ Создан пользователь: {user_data['username']} ({user_data['role']}) / пароль: 123456")
         else:
             print(f"⏭️  Пользователь уже существует: {user_data['username']}")
-    
+
     if created_users:
         db.session.commit()
-        
+
         # Создаем связь родитель-ребенок
         parent = User.query.filter_by(email='parent@yandex.ru').first()
         student = User.query.filter_by(email='student@yandex.ru').first()
-        
+
         if parent and student:
-            existing_relation = Parent.query.filter_by(id_parent=parent.id, id_child=student.id).first()
+            existing_relation = Parent.query.filter_by(
+                id_parent=parent.id, id_child=student.id).first()
             if not existing_relation:
                 parent_rel = Parent(id_parent=parent.id, id_child=student.id)
                 db.session.add(parent_rel)
                 db.session.commit()
                 print("✅ Создана связь: parent → student")
-    
+
     print("\n📝 Данные для входа (все пароли: 123456):")
     for user_data in default_users:
-        print(f"   {user_data['username']}: {user_data['email']} / роль: {user_data['role']}")
-    
+        print(
+            f"   {user_data['username']}: {user_data['email']} / роль: {user_data['role']}")
+
     return len(created_users)
 
 
 def create_demo_content():
     """Создает демо-контент, если его нет"""
-    
+
     if Module.query.count() > 0:
         print("⏭️  Демо-контент уже существует")
         return
-    
+
     print("📚 Создаем демо-контент...")
-    
+
     teacher = User.query.filter_by(email='teacher@yandex.ru').first()
     student = User.query.filter_by(email='student@yandex.ru').first()
-    
+
     # 1. Создаем модуль
     module = Module(
         title="Основы Python",
@@ -127,7 +130,7 @@ def create_demo_content():
     db.session.add(module)
     db.session.commit()
     print("✅ Модуль: Основы Python")
-    
+
     # 2. Создаем уроки
     lesson1 = Lesson(
         module_id=module.id,
@@ -135,7 +138,7 @@ def create_demo_content():
         content="Python - это простой и мощный язык программирования. Он идеально подходит для начинающих."
     )
     db.session.add(lesson1)
-    
+
     lesson2 = Lesson(
         module_id=module.id,
         title="Переменные и типы данных",
@@ -144,7 +147,7 @@ def create_demo_content():
     db.session.add(lesson2)
     db.session.commit()
     print("✅ Уроки созданы")
-    
+
     # 3. Создаем теорию
     theory1 = Theory(
         lesson_id=lesson1.id,
@@ -153,7 +156,7 @@ def create_demo_content():
         image="default_theory.png"
     )
     db.session.add(theory1)
-    
+
     theory2 = Theory(
         lesson_id=lesson1.id,
         title="Где используется Python?",
@@ -163,7 +166,7 @@ def create_demo_content():
     db.session.add(theory2)
     db.session.commit()
     print("✅ Теория создана")
-    
+
     # 4. Создаем тесты
     test1 = Test(
         lesson_id=lesson1.id,
@@ -171,22 +174,24 @@ def create_demo_content():
         text="Кто создал язык программирования Python?",
         type="single",
         answer="Гвидо ван Россум",
-        options=["Гвидо ван Россум", "Деннис Ритчи", "Джеймс Гослинг", "Бьёрн Страуструп"]
+        options=["Гвидо ван Россум", "Деннис Ритчи",
+                 "Джеймс Гослинг", "Бьёрн Страуструп"]
     )
     db.session.add(test1)
-    
+
     test2 = Test(
         lesson_id=lesson1.id,
         title="Проверка знаний: Применение",
         text="В каких областях используется Python? (Выберите все подходящие)",
         type="multiple",
         answer="Веб-разработка,ИИ,Анализ данных",
-        options=["Веб-разработка", "Мобильные приложения", "Искусственный интеллект", "Анализ данных"]
+        options=["Веб-разработка", "Мобильные приложения",
+                 "Искусственный интеллект", "Анализ данных"]
     )
     db.session.add(test2)
     db.session.commit()
     print("✅ Тесты созданы")
-    
+
     # 5. Создаем варианты ответов
     for test in [test1, test2]:
         for opt in test.options:
@@ -197,7 +202,7 @@ def create_demo_content():
             db.session.add(option)
     db.session.commit()
     print("✅ Варианты ответов созданы")
-    
+
     # 6. Создаем задания
     task1 = Task(
         lesson_id=lesson1.id,
@@ -207,7 +212,7 @@ def create_demo_content():
         image="hello_world.png"
     )
     db.session.add(task1)
-    
+
     task2 = Task(
         lesson_id=lesson2.id,
         title="Переменная с именем",
@@ -218,7 +223,7 @@ def create_demo_content():
     db.session.add(task2)
     db.session.commit()
     print("✅ Задания созданы")
-    
+
     # 7. Создаем группу
     if teacher:
         group = Group(
@@ -230,7 +235,7 @@ def create_demo_content():
         db.session.add(group)
         db.session.commit()
         print("✅ Группа создана")
-        
+
         # 8. Создаем чат для группы
         chat = Chat(
             group_id=group.id,
@@ -241,7 +246,7 @@ def create_demo_content():
         db.session.add(chat)
         db.session.commit()
         print("✅ Чат создан")
-        
+
         # 9. Добавляем сообщение
         message = Message(
             user_id=teacher.id,
@@ -252,7 +257,7 @@ def create_demo_content():
         db.session.add(message)
         db.session.commit()
         print("✅ Приветственное сообщение добавлено")
-    
+
     print("✅ Демо-контент успешно создан!")
 
 
@@ -274,7 +279,7 @@ def role_required(*roles):
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated:
                 return redirect(url_for('login'))
-            
+
             if current_user.role not in roles:
                 flash('У вас нет доступа к этой странице', 'danger')
                 if request.endpoint == 'dashboard':
@@ -297,7 +302,7 @@ def index():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    
+
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(
@@ -308,34 +313,35 @@ def register():
             itcoins=100
         )
         user.set_password(form.password.data)
-        
+
         if User.query.count() == 0:
             user.role = 'admin'
             user.itcoins = 1000
-        
+
         db.session.add(user)
         db.session.commit()
-        
+
         flash('Регистрация успешна! Теперь вы можете войти.', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('auth/register.html', form=form)
 
 
 def sync_user_chats(user):
     """Синхронизирует чаты пользователя со всеми группами, где он состоит"""
     from models import Group, GroupStudent, Chat
-    
+
     print(f"Синхронизация чатов для {user.username}...")
-    
+
     # Находим все группы через таблицу group_students
-    groups = db.session.query(Group).join(GroupStudent).filter(GroupStudent.student_id == user.id).all()
+    groups = db.session.query(Group).join(GroupStudent).filter(
+        GroupStudent.student_id == user.id).all()
     print(f"  Найдено групп: {len(groups)}")
-    
+
     for group in groups:
         print(f"  Группа: {group.title}")
         chat = Chat.query.filter_by(group_id=group.id).first()
-        
+
         if chat:
             if chat.users is None:
                 chat.users = []
@@ -354,33 +360,32 @@ def sync_user_chats(user):
             )
             db.session.add(chat)
             print(f"    ✅ Создан новый чат и добавлен пользователь")
-    
+
     db.session.commit()
     print(f"Синхронизация завершена")
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data) and user.is_active:
             login_user(user, remember=form.remember.data)
-            
+
             # Синхронизируем чаты
             sync_user_chats(user)
-            
+
             next_page = request.args.get('next')
             flash(f'Добро пожаловать, {user.username}!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
             flash('Неверный email или пароль', 'danger')
-    
+
     return render_template('auth/login.html', form=form)
-
-
 
 
 @app.route('/logout')
@@ -412,16 +417,19 @@ def dashboard():
 @login_required
 def profile():
     """Страница профиля пользователя"""
-    
+
     stats = {}
     if current_user.role == 'student':
         stats['total_lessons'] = Lesson.query.count()
-        stats['completed_lessons'] = ProgressModule.query.filter_by(user_id=current_user.id).count()
+        stats['completed_lessons'] = ProgressModule.query.filter_by(
+            user_id=current_user.id).count()
         stats['total_tests'] = Test.query.count()
-        stats['completed_tests'] = TestResult.query.filter_by(user_id=current_user.id).count()
+        stats['completed_tests'] = TestResult.query.filter_by(
+            user_id=current_user.id).count()
         stats['total_tasks'] = Task.query.count()
-        stats['completed_tasks'] = TaskResult.query.filter_by(user_id=current_user.id, status='completed').count()
-    
+        stats['completed_tasks'] = TaskResult.query.filter_by(
+            user_id=current_user.id, status='completed').count()
+
     teacher_stats = {}
     if current_user.role == 'teacher':
         groups = Group.query.filter_by(created_by=current_user.id).all()
@@ -430,19 +438,19 @@ def profile():
         for group in groups:
             students_count += len(group.get_students())
         teacher_stats['students_count'] = students_count
-    
+
     parent_stats = {}
     if current_user.role == 'parent':
         children = Parent.query.filter_by(id_parent=current_user.id).all()
         parent_stats['children_count'] = len(children)
-    
+
     recent_activity = []
-    
-    return render_template('profile.html', 
-                         stats=stats, 
-                         teacher_stats=teacher_stats,
-                         parent_stats=parent_stats,
-                         recent_activity=recent_activity)
+
+    return render_template('profile.html',
+                           stats=stats,
+                           teacher_stats=teacher_stats,
+                           parent_stats=parent_stats,
+                           recent_activity=recent_activity)
 
 
 @app.route('/profile/update', methods=['POST'])
@@ -453,22 +461,22 @@ def update_profile():
     email = request.form.get('email')
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
-    
+
     if username != current_user.username:
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Имя пользователя уже занято', 'danger')
             return redirect(url_for('profile'))
-    
+
     if email != current_user.email:
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email уже используется', 'danger')
             return redirect(url_for('profile'))
-    
+
     current_user.username = username
     current_user.email = email
-    
+
     if new_password:
         if new_password != confirm_password:
             flash('Пароли не совпадают', 'danger')
@@ -477,7 +485,7 @@ def update_profile():
             flash('Пароль должен содержать минимум 6 символов', 'danger')
             return redirect(url_for('profile'))
         current_user.set_password(new_password)
-    
+
     db.session.commit()
     flash('Профиль успешно обновлен!', 'success')
     return redirect(url_for('profile'))
@@ -490,28 +498,31 @@ def update_photo():
     if 'photo' not in request.files:
         flash('Файл не выбран', 'danger')
         return redirect(url_for('profile'))
-    
+
     file = request.files['photo']
     if file.filename == '':
         flash('Файл не выбран', 'danger')
         return redirect(url_for('profile'))
-    
+
     if file:
         allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-        ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-        
+        ext = file.filename.rsplit(
+            '.', 1)[1].lower() if '.' in file.filename else ''
+
         if ext not in allowed_extensions:
-            flash('Неподдерживаемый формат файла. Используйте PNG, JPG, GIF или WEBP', 'danger')
+            flash(
+                'Неподдерживаемый формат файла. Используйте PNG, JPG, GIF или WEBP', 'danger')
             return redirect(url_for('profile'))
-        
+
         filename = f"user_{current_user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
-        
-        upload_folder = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'users')
+
+        upload_folder = os.path.join(app.config.get(
+            'UPLOAD_FOLDER', 'static/uploads'), 'users')
         os.makedirs(upload_folder, exist_ok=True)
-        
+
         filepath = os.path.join(upload_folder, filename)
         file.save(filepath)
-        
+
         if current_user.photo and current_user.photo != 'default_avatar.png':
             old_filepath = os.path.join(upload_folder, current_user.photo)
             if os.path.exists(old_filepath):
@@ -519,12 +530,12 @@ def update_photo():
                     os.remove(old_filepath)
                 except:
                     pass
-        
+
         current_user.photo = filename
         db.session.commit()
-        
+
         flash('Фото профиля обновлено!', 'success')
-    
+
     return redirect(url_for('profile'))
 
 
@@ -543,16 +554,16 @@ def admin_dashboard():
         'modules': Module.query.count(),
         'groups': Group.query.count()
     }
-    
+
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     popular_modules = Module.query.all()
     all_modules = Module.query.all()
-    
-    return render_template('admin/dashboard.html', 
-                         stats=stats, 
-                         recent_users=recent_users,
-                         popular_modules=popular_modules,
-                         all_modules=all_modules)
+
+    return render_template('admin/dashboard.html',
+                           stats=stats,
+                           recent_users=recent_users,
+                           popular_modules=popular_modules,
+                           all_modules=all_modules)
 
 
 @app.route('/admin/users')
@@ -569,7 +580,7 @@ def admin_users():
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UserEditForm(obj=user)
-    
+
     if form.validate_on_submit():
         user.username = form.username.data
         user.email = form.email.data
@@ -578,7 +589,7 @@ def edit_user(user_id):
         db.session.commit()
         flash('Пользователь обновлен', 'success')
         return redirect(url_for('admin_users'))
-    
+
     return render_template('admin/edit_user.html', form=form, user=user)
 
 
@@ -589,7 +600,7 @@ def delete_user(user_id):
     if user_id == current_user.id:
         flash('Вы не можете удалить самого себя', 'danger')
         return redirect(url_for('admin_users'))
-    
+
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
@@ -605,6 +616,13 @@ def delete_user(user_id):
 @role_required('student')
 def game_keyboard():
     return render_template('games/keyboard.html')
+
+
+@app.route('/game_find_bug')
+@login_required
+@role_required('student')
+def game_find_bug():
+    return render_template('games/find_bug.html')
 
 
 # ============================================================
@@ -633,35 +651,37 @@ def admin_create_module():
     title = request.form.get('title')
     description = request.form.get('description')
     icon = request.form.get('icon', 'book')
-    
+
     if not title:
         flash('Название модуля обязательно', 'danger')
         return redirect(url_for('admin_modules'))
-    
+
     module = Module(
         title=title,
         description=description,
         icon=icon,
         photo='default_module.png'
     )
-    
+
     if 'photo' in request.files:
         file = request.files['photo']
         if file and file.filename:
             allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-            ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-            
+            ext = file.filename.rsplit(
+                '.', 1)[1].lower() if '.' in file.filename else ''
+
             if ext in allowed_extensions:
                 filename = f"module_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
-                upload_folder = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'modules')
+                upload_folder = os.path.join(app.config.get(
+                    'UPLOAD_FOLDER', 'static/uploads'), 'modules')
                 os.makedirs(upload_folder, exist_ok=True)
                 filepath = os.path.join(upload_folder, filename)
                 file.save(filepath)
                 module.photo = filename
-    
+
     db.session.add(module)
     db.session.commit()
-    
+
     flash(f'Модуль "{title}" успешно создан!', 'success')
     return redirect(url_for('admin_modules'))
 
@@ -684,38 +704,41 @@ def admin_module_data(module_id):
 @role_required('admin')
 def admin_edit_module(module_id):
     module = Module.query.get_or_404(module_id)
-    
+
     title = request.form.get('title')
     description = request.form.get('description')
     icon = request.form.get('icon', 'book')
-    
+
     if title:
         module.title = title
     module.description = description
     module.icon = icon
-    
+
     if 'photo' in request.files:
         file = request.files['photo']
         if file and file.filename:
             allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-            ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-            
+            ext = file.filename.rsplit(
+                '.', 1)[1].lower() if '.' in file.filename else ''
+
             if ext in allowed_extensions:
                 if module.photo and module.photo != 'default_module.png':
-                    old_filepath = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'modules', module.photo)
+                    old_filepath = os.path.join(app.config.get(
+                        'UPLOAD_FOLDER', 'static/uploads'), 'modules', module.photo)
                     if os.path.exists(old_filepath):
                         try:
                             os.remove(old_filepath)
                         except:
                             pass
-                
+
                 filename = f"module_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
-                upload_folder = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'modules')
+                upload_folder = os.path.join(app.config.get(
+                    'UPLOAD_FOLDER', 'static/uploads'), 'modules')
                 os.makedirs(upload_folder, exist_ok=True)
                 filepath = os.path.join(upload_folder, filename)
                 file.save(filepath)
                 module.photo = filename
-    
+
     db.session.commit()
     flash(f'Модуль "{module.title}" успешно обновлен!', 'success')
     return redirect(url_for('admin_modules'))
@@ -727,10 +750,10 @@ def admin_edit_module(module_id):
 def admin_delete_module(module_id):
     module = Module.query.get_or_404(module_id)
     title = module.title
-    
+
     db.session.delete(module)
     db.session.commit()
-    
+
     flash(f'Модуль "{title}" успешно удален', 'success')
     return redirect(url_for('admin_modules'))
 
@@ -740,20 +763,21 @@ def admin_delete_module(module_id):
 @role_required('admin')
 def admin_module_detail(module_id):
     module = Module.query.get_or_404(module_id)
-    lessons = Lesson.query.filter_by(module_id=module.id).order_by(Lesson.id).all()
-    
+    lessons = Lesson.query.filter_by(
+        module_id=module.id).order_by(Lesson.id).all()
+
     total_tests = 0
     total_tasks = 0
     for lesson in lessons:
         total_tests += Test.query.filter_by(lesson_id=lesson.id).count()
         total_tasks += Task.query.filter_by(lesson_id=lesson.id).count()
-    
+
     # НЕ передаем progress в админский шаблон!
-    return render_template('admin/module_detail.html', 
-                         module=module, 
-                         lessons=lessons,
-                         total_tests=total_tests,
-                         total_tasks=total_tasks)
+    return render_template('admin/module_detail.html',
+                           module=module,
+                           lessons=lessons,
+                           total_tests=total_tests,
+                           total_tasks=total_tasks)
 
 
 @app.route('/admin/reports')
@@ -781,23 +805,23 @@ def admin_lesson_data(lesson_id):
 @role_required('admin')
 def admin_create_lesson(module_id):
     module = Module.query.get_or_404(module_id)
-    
+
     title = request.form.get('title')
     content = request.form.get('content')
-    
+
     if not title:
         flash('Название урока обязательно', 'danger')
         return redirect(url_for('admin_module_detail', module_id=module_id))
-    
+
     lesson = Lesson(
         module_id=module.id,
         title=title,
         content=content
     )
-    
+
     db.session.add(lesson)
     db.session.commit()
-    
+
     flash(f'Урок "{title}" успешно создан!', 'success')
     return redirect(url_for('admin_module_detail', module_id=module_id))
 
@@ -807,16 +831,16 @@ def admin_create_lesson(module_id):
 @role_required('admin')
 def admin_edit_lesson(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     title = request.form.get('title')
     content = request.form.get('content')
-    
+
     if title:
         lesson.title = title
     lesson.content = content
-    
+
     db.session.commit()
-    
+
     flash(f'Урок "{lesson.title}" успешно обновлен!', 'success')
     return redirect(url_for('admin_module_detail', module_id=lesson.module_id))
 
@@ -828,10 +852,10 @@ def admin_delete_lesson(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
     module_id = lesson.module_id
     title = lesson.title
-    
+
     db.session.delete(lesson)
     db.session.commit()
-    
+
     flash(f'Урок "{title}" успешно удален', 'success')
     return redirect(url_for('admin_module_detail', module_id=module_id))
 
@@ -844,12 +868,12 @@ def admin_lesson_detail(lesson_id):
     theory = Theory.query.filter_by(lesson_id=lesson.id).all()
     tests = Test.query.filter_by(lesson_id=lesson.id).all()
     tasks = Task.query.filter_by(lesson_id=lesson.id).all()
-    
-    return render_template('admin/lesson_detail.html', 
-                         lesson=lesson, 
-                         theory=theory, 
-                         tests=tests, 
-                         tasks=tasks)
+
+    return render_template('admin/lesson_detail.html',
+                           lesson=lesson,
+                           theory=theory,
+                           tests=tests,
+                           tasks=tasks)
 
 
 # ========== УПРАВЛЕНИЕ ТЕОРИЕЙ ==========
@@ -858,38 +882,40 @@ def admin_lesson_detail(lesson_id):
 @role_required('admin')
 def admin_create_theory(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     title = request.form.get('title')
     content = request.form.get('content')
-    
+
     if not title:
         flash('Заголовок обязателен', 'danger')
         return redirect(url_for('admin_lesson_detail', lesson_id=lesson.id))
-    
+
     theory = Theory(
         lesson_id=lesson.id,
         title=title,
         content=content,
         image='default_theory.png'
     )
-    
+
     if 'image' in request.files:
         file = request.files['image']
         if file and file.filename:
             allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-            ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-            
+            ext = file.filename.rsplit(
+                '.', 1)[1].lower() if '.' in file.filename else ''
+
             if ext in allowed_extensions:
                 filename = f"theory_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
-                upload_folder = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'theories')
+                upload_folder = os.path.join(app.config.get(
+                    'UPLOAD_FOLDER', 'static/uploads'), 'theories')
                 os.makedirs(upload_folder, exist_ok=True)
                 filepath = os.path.join(upload_folder, filename)
                 file.save(filepath)
                 theory.image = filename
-    
+
     db.session.add(theory)
     db.session.commit()
-    
+
     flash('Теоретический материал добавлен!', 'success')
     return redirect(url_for('admin_lesson_detail', lesson_id=lesson.id))
 
@@ -912,34 +938,37 @@ def admin_theory_data(theory_id):
 @role_required('admin')
 def admin_edit_theory(theory_id):
     theory = Theory.query.get_or_404(theory_id)
-    
+
     theory.title = request.form.get('title')
     theory.content = request.form.get('content')
-    
+
     if 'image' in request.files:
         file = request.files['image']
         if file and file.filename:
             allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-            ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-            
+            ext = file.filename.rsplit(
+                '.', 1)[1].lower() if '.' in file.filename else ''
+
             if ext in allowed_extensions:
                 if theory.image and theory.image != 'default_theory.png':
-                    old_filepath = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'theories', theory.image)
+                    old_filepath = os.path.join(app.config.get(
+                        'UPLOAD_FOLDER', 'static/uploads'), 'theories', theory.image)
                     if os.path.exists(old_filepath):
                         try:
                             os.remove(old_filepath)
                         except:
                             pass
-                
+
                 filename = f"theory_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
-                upload_folder = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'theories')
+                upload_folder = os.path.join(app.config.get(
+                    'UPLOAD_FOLDER', 'static/uploads'), 'theories')
                 os.makedirs(upload_folder, exist_ok=True)
                 filepath = os.path.join(upload_folder, filename)
                 file.save(filepath)
                 theory.image = filename
-    
+
     db.session.commit()
-    
+
     flash('Теоретический материал обновлен!', 'success')
     return redirect(url_for('admin_lesson_detail', lesson_id=theory.lesson_id))
 
@@ -950,18 +979,19 @@ def admin_edit_theory(theory_id):
 def admin_delete_theory(theory_id):
     theory = Theory.query.get_or_404(theory_id)
     lesson_id = theory.lesson_id
-    
+
     if theory.image and theory.image != 'default_theory.png':
-        filepath = os.path.join(app.config.get('UPLOAD_FOLDER', 'static/uploads'), 'theories', theory.image)
+        filepath = os.path.join(app.config.get(
+            'UPLOAD_FOLDER', 'static/uploads'), 'theories', theory.image)
         if os.path.exists(filepath):
             try:
                 os.remove(filepath)
             except:
                 pass
-    
+
     db.session.delete(theory)
     db.session.commit()
-    
+
     flash('Теоретический материал удален', 'success')
     return redirect(url_for('admin_lesson_detail', lesson_id=lesson_id))
 
@@ -972,10 +1002,10 @@ def admin_delete_theory(theory_id):
 @role_required('admin')
 def admin_create_test(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     options_text = request.form.get('options', '')
     options = [opt.strip() for opt in options_text.split('\n') if opt.strip()]
-    
+
     test = Test(
         lesson_id=lesson.id,
         title=request.form.get('title'),
@@ -1008,7 +1038,7 @@ def admin_delete_test(test_id):
 @role_required('admin')
 def admin_create_task(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     task = Task(
         lesson_id=lesson.id,
         title=request.form.get('title'),
@@ -1040,20 +1070,20 @@ def admin_delete_task(task_id):
 @role_required('teacher')
 def teacher_dashboard():
     groups = Group.query.filter_by(created_by=current_user.id).all()
-    
+
     # Добавляем количество учеников для каждой группы
     for group in groups:
         group.students_count = len(group.get_students())
-    
+
     stats = {
         'groups_count': len(groups),
         'students_count': sum(g.students_count for g in groups),
         'modules_count': Module.query.count()
     }
-    
+
     # Получаем все модули для выбора в модальном окне
     modules = Module.query.all()
-    
+
     return render_template('teacher/dashboard.html', groups=groups, stats=stats, modules=modules)
 
 
@@ -1065,10 +1095,10 @@ def teacher_groups():
         groups = Group.query.all()
     else:
         groups = Group.query.filter_by(created_by=current_user.id).all()
-    
+
     for group in groups:
         group.students_count = len(group.get_students())
-    
+
     modules = Module.query.all()
     return render_template('teacher/groups.html', groups=groups, modules=modules)
 
@@ -1080,11 +1110,11 @@ def teacher_create_group():
     title = request.form.get('title')
     module_id = request.form.get('module_id')
     date_str = request.form.get('date')
-    
+
     if not title or not module_id or not date_str:
         flash('Заполните все поля', 'danger')
         return redirect(request.referrer or url_for('teacher_groups'))
-    
+
     try:
         group = Group(
             title=title,
@@ -1094,7 +1124,7 @@ def teacher_create_group():
         )
         db.session.add(group)
         db.session.commit()
-        
+
         chat = Chat(
             group_id=group.id,
             admin_id=current_user.id,
@@ -1103,30 +1133,31 @@ def teacher_create_group():
         )
         db.session.add(chat)
         db.session.commit()
-        
+
         flash(f'Группа "{title}" успешно создана!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Ошибка при создании группы: {str(e)}', 'danger')
-    
+
     return redirect(request.referrer or url_for('teacher_groups'))
+
 
 @app.route('/teacher/group/<int:group_id>')
 @login_required
 @role_required('teacher', 'admin')
 def teacher_group_detail(group_id):
     group = Group.query.get_or_404(group_id)
-    
+
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет доступа к этой группе', 'danger')
         return redirect(url_for('teacher_groups'))
-    
+
     module = Module.query.get(group.module_id)
     chat = group.get_chat()
-    
+
     # Получаем учеников через метод get_students()
     students = group.get_students()
-    
+
     # ОТЛАДКА: выводим в консоль
     print(f"=== GROUP DETAIL DEBUG ===")
     print(f"Group ID: {group.id}")
@@ -1135,20 +1166,21 @@ def teacher_group_detail(group_id):
     for s in students:
         print(f"  - {s.username} ({s.email})")
     print(f"==========================")
-    
+
     # Получаем прогресс учеников
     for student in students:
         progress = ProgressModule.query.filter_by(
             user_id=student.id,
             module_id=group.module_id
         ).first()
-        student.progress = progress.progress.get('percentage', 0) if progress else 0
-    
-    return render_template('teacher/group_detail.html', 
-                         group=group, 
-                         module=module, 
-                         students=students,
-                         chat=chat)
+        student.progress = progress.progress.get(
+            'percentage', 0) if progress else 0
+
+    return render_template('teacher/group_detail.html',
+                           group=group,
+                           module=module,
+                           students=students,
+                           chat=chat)
 
 
 # @app.route('/teacher/group/<int:group_id>/add_student', methods=['POST'])
@@ -1156,29 +1188,29 @@ def teacher_group_detail(group_id):
 # @role_required('teacher', 'admin')
 # def teacher_add_student(group_id):
 #     group = Group.query.get_or_404(group_id)
-    
+
 #     if not current_user.is_admin() and group.created_by != current_user.id:
 #         flash('У вас нет прав для добавления учеников', 'danger')
 #         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
 #     email = request.form.get('email')
 #     if not email:
 #         flash('Введите email ученика', 'warning')
 #         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
 #     student = User.query.filter_by(email=email).first()
 #     if not student:
 #         flash(f'Пользователь с email {email} не найден', 'danger')
 #         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
 #     if student.role != 'student':
 #         flash(f'Пользователь {student.username} не является учеником', 'warning')
 #         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
 #     if group.has_student(student):
 #         flash(f'Ученик {student.username} уже состоит в этой группе', 'warning')
 #         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
 #     if group.add_student(student):
 #         chat = group.get_chat()
 #         if chat and student.id not in chat.users:
@@ -1187,7 +1219,7 @@ def teacher_group_detail(group_id):
 #         flash(f'Ученик {student.username} успешно добавлен в группу!', 'success')
 #     else:
 #         flash('Ошибка при добавлении ученика', 'danger')
-    
+
 #     return redirect(url_for('teacher_group_detail', group_id=group_id))
 
 
@@ -1196,31 +1228,33 @@ def teacher_group_detail(group_id):
 @role_required('teacher', 'admin')
 def teacher_add_student(group_id):
     import json
-    
+
     group = Group.query.get_or_404(group_id)
-    
+
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет прав для добавления учеников', 'danger')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     email = request.form.get('email')
     if not email:
         flash('Введите email ученика', 'warning')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     student = User.query.filter_by(email=email).first()
     if not student:
         flash(f'Пользователь с email {email} не найден', 'danger')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     if student.role != 'student':
-        flash(f'Пользователь {student.username} не является учеником', 'warning')
+        flash(
+            f'Пользователь {student.username} не является учеником', 'warning')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     if group.has_student(student):
-        flash(f'Ученик {student.username} уже состоит в этой группе', 'warning')
+        flash(
+            f'Ученик {student.username} уже состоит в этой группе', 'warning')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     # Добавляем ученика в группу
     if group.add_student(student):
         # Добавляем ученика в чат
@@ -1228,7 +1262,7 @@ def teacher_add_student(group_id):
         if chat and student.id not in chat.users:
             chat.users.append(student.id)
             db.session.commit()
-        
+
         # ========== СОЗДАЕМ ПРОГРЕСС ДЛЯ МОДУЛЯ ==========
         module = Module.query.get(group.module_id)
         if module:
@@ -1237,7 +1271,7 @@ def teacher_add_student(group_id):
                 user_id=student.id,
                 module_id=module.id
             ).first()
-            
+
             if not existing_progress:
                 # Создаем полную структуру прогресса
                 progress_data = {
@@ -1246,7 +1280,7 @@ def teacher_add_student(group_id):
                     'current_lesson': None,
                     'lessons': {}
                 }
-                
+
                 # Добавляем все уроки модуля
                 for lesson in module.lessons_list:
                     lesson_data = {
@@ -1257,7 +1291,7 @@ def teacher_add_student(group_id):
                         'tasks': {},
                         'theory_viewed': False
                     }
-                    
+
                     # Добавляем все тесты урока
                     for test in lesson.tests_list:
                         lesson_data['tests'][str(test.id)] = {
@@ -1268,7 +1302,7 @@ def teacher_add_student(group_id):
                             'last_answer': None,
                             'is_correct': False
                         }
-                    
+
                     # Добавляем все задания урока
                     for task in lesson.tasks_list:
                         lesson_data['tasks'][str(task.id)] = {
@@ -1277,9 +1311,9 @@ def teacher_add_student(group_id):
                             'submitted': False,
                             'score': 0
                         }
-                    
+
                     progress_data['lessons'][str(lesson.id)] = lesson_data
-                
+
                 new_progress = ProgressModule(
                     user_id=student.id,
                     module_id=module.id,
@@ -1287,31 +1321,36 @@ def teacher_add_student(group_id):
                 )
                 db.session.add(new_progress)
                 db.session.commit()
-                print(f"✅ Создан прогресс для ученика {student.username} по модулю {module.title}")
+                print(
+                    f"✅ Создан прогресс для ученика {student.username} по модулю {module.title}")
                 print(f"   Уроков: {len(progress_data['lessons'])}")
                 for lesson_id, lesson in progress_data['lessons'].items():
-                    print(f"   - Урок {lesson_id}: тестов={len(lesson['tests'])}, заданий={len(lesson['tasks'])}")
+                    print(
+                        f"   - Урок {lesson_id}: тестов={len(lesson['tests'])}, заданий={len(lesson['tasks'])}")
             else:
-                print(f"⚠️ Прогресс для ученика {student.username} по модулю {module.title} уже существует")
-        
-        flash(f'Ученик {student.username} успешно добавлен в группу!', 'success')
+                print(
+                    f"⚠️ Прогресс для ученика {student.username} по модулю {module.title} уже существует")
+
+        flash(
+            f'Ученик {student.username} успешно добавлен в группу!', 'success')
     else:
         flash('Ошибка при добавлении ученика', 'danger')
-    
+
     return redirect(url_for('teacher_group_detail', group_id=group_id))
+
 
 @app.route('/teacher/group/<int:group_id>/remove_student/<int:student_id>', methods=['POST'])
 @login_required
 @role_required('teacher', 'admin')
 def teacher_remove_student(group_id, student_id):
     group = Group.query.get_or_404(group_id)
-    
+
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет прав для удаления учеников', 'danger')
         return redirect(url_for('teacher_group_detail', group_id=group_id))
-    
+
     student = User.query.get_or_404(student_id)
-    
+
     if group.remove_student(student):
         chat = group.get_chat()
         if chat and student.id in chat.users:
@@ -1320,7 +1359,7 @@ def teacher_remove_student(group_id, student_id):
         flash(f'Ученик {student.username} удален из группы', 'success')
     else:
         flash(f'Ученик {student.username} не найден в этой группе', 'warning')
-    
+
     return redirect(url_for('teacher_group_detail', group_id=group_id))
 
 
@@ -1329,22 +1368,22 @@ def teacher_remove_student(group_id, student_id):
 @role_required('teacher', 'admin')
 def teacher_delete_group(group_id):
     group = Group.query.get_or_404(group_id)
-    
+
     if not current_user.is_admin() and group.created_by != current_user.id:
         flash('У вас нет прав для удаления группы', 'danger')
         return redirect(url_for('teacher_groups'))
-    
+
     title = group.title
-    
+
     GroupStudent.query.filter_by(group_id=group_id).delete()
-    
+
     chat = group.get_chat()
     if chat:
         db.session.delete(chat)
-    
+
     db.session.delete(group)
     db.session.commit()
-    
+
     flash(f'Группа "{title}" успешно удалена', 'success')
     return redirect(url_for('teacher_groups'))
 
@@ -1358,46 +1397,47 @@ def student_dashboard():
     if current_user.role != 'student':
         flash('У вас нет доступа к панели ученика', 'danger')
         return redirect(url_for('dashboard'))
-    
+
     modules = Module.query.all()
     total_lessons = Lesson.query.count()
     completed_lessons = 0
-    
+
     for module in modules:
         progress = ProgressModule.query.filter_by(
-            user_id=current_user.id, 
+            user_id=current_user.id,
             module_id=module.id
         ).first()
-        
+
         if progress and progress.progress:
             module.progress = progress.progress.get('percentage', 0)
             if module.progress >= 100:
                 completed_lessons += 1
         else:
             module.progress = 0
-    
-    overall_progress = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0
-    
-    return render_template('student/dashboard.html', 
-                         modules=modules,
-                         overall_progress=int(overall_progress),
-                         completed_lessons=completed_lessons,
-                         total_lessons=total_lessons)
+
+    overall_progress = (completed_lessons / total_lessons *
+                        100) if total_lessons > 0 else 0
+
+    return render_template('student/dashboard.html',
+                           modules=modules,
+                           overall_progress=int(overall_progress),
+                           completed_lessons=completed_lessons,
+                           total_lessons=total_lessons)
 
 
 @app.route('/student/module/<int:module_id>')
 @login_required
 def student_module(module_id):
     import json
-    
+
     module = Module.query.get_or_404(module_id)
     lessons = Lesson.query.filter_by(module_id=module.id).all()
-    
+
     progress = ProgressModule.query.filter_by(
         user_id=current_user.id,
         module_id=module_id
     ).first()
-    
+
     # Если прогресса нет — создаем
     if not progress:
         progress = ProgressModule(
@@ -1411,7 +1451,7 @@ def student_module(module_id):
             }
         )
         db.session.add(progress)
-        
+
         # Инициализируем все уроки модуля
         for lesson in lessons:
             lesson_key = str(lesson.id)
@@ -1423,7 +1463,7 @@ def student_module(module_id):
                 'tasks': {},
                 'theory_viewed': False
             }
-            
+
             for test in lesson.tests_list:
                 lesson_data['tests'][str(test.id)] = {
                     'title': test.title,
@@ -1433,7 +1473,7 @@ def student_module(module_id):
                     'last_answer': None,
                     'is_correct': False
                 }
-            
+
             for task in lesson.tasks_list:
                 lesson_data['tasks'][str(task.id)] = {
                     'title': task.title,
@@ -1441,12 +1481,13 @@ def student_module(module_id):
                     'submitted': False,
                     'score': 0
                 }
-            
+
             progress.progress['lessons'][lesson_key] = lesson_data
-        
+
         db.session.add(progress)
         db.session.commit()
-        print(f"✅ Создан прогресс для модуля {module.title} для {current_user.username}")
+        print(
+            f"✅ Создан прогресс для модуля {module.title} для {current_user.username}")
     else:
         # Преобразуем строку в словарь
         if isinstance(progress.progress, str):
@@ -1454,29 +1495,29 @@ def student_module(module_id):
                 progress.progress = json.loads(progress.progress)
             except:
                 progress.progress = {}
-        
+
         if not isinstance(progress.progress, dict):
             progress.progress = {}
-        
+
         # Проверяем и добавляем ключи
         need_save = False
-        
+
         if 'lessons' not in progress.progress:
             progress.progress['lessons'] = {}
             need_save = True
-        
+
         if 'percentage' not in progress.progress:
             progress.progress['percentage'] = 0
             need_save = True
-        
+
         if 'completed_lessons' not in progress.progress:
             progress.progress['completed_lessons'] = []
             need_save = True
-        
+
         if 'current_lesson' not in progress.progress:
             progress.progress['current_lesson'] = None
             need_save = True
-        
+
         # Проверяем все уроки
         for lesson in lessons:
             lesson_key = str(lesson.id)
@@ -1489,7 +1530,7 @@ def student_module(module_id):
                     'tasks': {},
                     'theory_viewed': False
                 }
-                
+
                 for test in lesson.tests_list:
                     lesson_data['tests'][str(test.id)] = {
                         'title': test.title,
@@ -1499,7 +1540,7 @@ def student_module(module_id):
                         'last_answer': None,
                         'is_correct': False
                     }
-                
+
                 for task in lesson.tasks_list:
                     lesson_data['tasks'][str(task.id)] = {
                         'title': task.title,
@@ -1507,32 +1548,33 @@ def student_module(module_id):
                         'submitted': False,
                         'score': 0
                     }
-                
+
                 progress.progress['lessons'][lesson_key] = lesson_data
                 need_save = True
-                print(f"✅ Добавлен урок {lesson.title} для {current_user.username}")
-        
+                print(
+                    f"✅ Добавлен урок {lesson.title} для {current_user.username}")
+
         if need_save:
             db.session.commit()
-    
-    return render_template('student/module_detail.html', 
-                         module=module, 
-                         lessons=lessons,
-                         progress=progress)
+
+    return render_template('student/module_detail.html',
+                           module=module,
+                           lessons=lessons,
+                           progress=progress)
 
 
 @app.route('/student/lesson/<int:lesson_id>')
 @login_required
 def student_lesson(lesson_id):
     import json
-    
+
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     progress = ProgressModule.query.filter_by(
         user_id=current_user.id,
         module_id=lesson.module_id
     ).first()
-    
+
     # Если прогресса нет — создаем
     if not progress:
         module = Module.query.get(lesson.module_id)
@@ -1549,21 +1591,21 @@ def student_lesson(lesson_id):
         db.session.add(progress)
         db.session.commit()
         print(f"✅ Создан новый прогресс для {current_user.username}")
-    
+
     # Преобразуем строку в словарь
     if isinstance(progress.progress, str):
         try:
             progress.progress = json.loads(progress.progress)
         except:
             progress.progress = {}
-    
+
     # Если не словарь — создаем новый
     if not isinstance(progress.progress, dict):
         progress.progress = {}
-    
+
     # ========== ГЛАВНАЯ ПРОВЕРКА СТРУКТУРЫ ==========
     need_save = False
-    
+
     # Проверяем lessons
     if 'lessons' not in progress.progress:
         progress.progress['lessons'] = {}
@@ -1573,32 +1615,32 @@ def student_lesson(lesson_id):
         progress.progress['lessons'] = {}
         need_save = True
         print(f"⚠️ Исправлен None в 'lessons'")
-    
+
     # Проверяем другие ключи
     if 'percentage' not in progress.progress:
         progress.progress['percentage'] = 0
         need_save = True
-    
+
     if 'completed_lessons' not in progress.progress:
         progress.progress['completed_lessons'] = []
         need_save = True
-    
+
     if 'current_lesson' not in progress.progress:
         progress.progress['current_lesson'] = None
         need_save = True
-    
+
     if need_save:
         db.session.commit()
         print(f"✅ Структура прогресса восстановлена")
-    
+
     # ========== ПРОВЕРКА НАЛИЧИЯ УРОКА ==========
     lesson_key = str(lesson.id)
-    
+
     # Убеждаемся, что lessons — это словарь
     if not isinstance(progress.progress.get('lessons'), dict):
         progress.progress['lessons'] = {}
         db.session.commit()
-    
+
     # Проверяем наличие урока
     if lesson_key not in progress.progress['lessons']:
         # Создаем структуру урока
@@ -1610,7 +1652,7 @@ def student_lesson(lesson_id):
             'tasks': {},
             'theory_viewed': False
         }
-        
+
         # Добавляем все тесты урока
         for test in lesson.tests_list:
             lesson_data['tests'][str(test.id)] = {
@@ -1621,7 +1663,7 @@ def student_lesson(lesson_id):
                 'last_answer': None,
                 'is_correct': False
             }
-        
+
         # Добавляем все задания урока
         for task in lesson.tasks_list:
             lesson_data['tasks'][str(task.id)] = {
@@ -1630,72 +1672,72 @@ def student_lesson(lesson_id):
                 'submitted': False,
                 'score': 0
             }
-        
+
         progress.progress['lessons'][lesson_key] = lesson_data
         db.session.commit()
         print(f"✅ Создан урок {lesson.title} в прогрессе")
-    
+
     # Теперь безопасно получаем данные урока
     lesson_data = progress.progress['lessons'][lesson_key]
-    
+
     # Отмечаем, что урок начат
     if not lesson_data.get('started', False):
         lesson_data['started'] = True
         db.session.commit()
         print(f"✅ Урок {lesson.title} отмечен как начатый")
-    
+
     theory = Theory.query.filter_by(lesson_id=lesson.id).all()
     tests = Test.query.filter_by(lesson_id=lesson.id).all()
     tasks = Task.query.filter_by(lesson_id=lesson.id).all()
-    
-    return render_template('student/lesson.html', 
-                         lesson=lesson, 
-                         theory=theory, 
-                         tests=tests, 
-                         tasks=tasks,
-                         progress=progress)
+
+    return render_template('student/lesson.html',
+                           lesson=lesson,
+                           theory=theory,
+                           tests=tests,
+                           tasks=tasks,
+                           progress=progress)
 
 
 @app.route('/student/test/<int:test_id>', methods=['POST'])
 @login_required
 def student_test(test_id):
     import copy
-    
+
     test = Test.query.get_or_404(test_id)
     lesson = Lesson.query.get(test.lesson_id)
-    
+
     if request.method == 'POST':
         user_answer = request.form.get('answer', '')
-        
+
         progress = ProgressModule.query.filter_by(
             user_id=current_user.id,
             module_id=lesson.module_id
         ).first()
-        
+
         if not progress:
             flash('Прогресс не найден', 'danger')
             return redirect(url_for('student_lesson', lesson_id=lesson.id))
-        
+
         # Делаем копию и обновляем
         data = copy.deepcopy(progress.progress)
-        
+
         lesson_key = str(lesson.id)
         test_key = str(test.id)
-        
+
         if lesson_key not in data.get('lessons', {}):
             flash('Урок не найден', 'danger')
             return redirect(url_for('student_lesson', lesson_id=lesson.id))
-        
+
         if test_key not in data['lessons'][lesson_key].get('tests', {}):
             flash('Тест не найден', 'danger')
             return redirect(url_for('student_lesson', lesson_id=lesson.id))
-        
+
         test_info = data['lessons'][lesson_key]['tests'][test_key]
-        
+
         if test_info.get('completed', False):
             flash('Этот тест уже пройден!', 'info')
             return redirect(url_for('student_lesson', lesson_id=lesson.id))
-        
+
         # Проверка ответа
         if test.type == 'single':
             is_correct = user_answer.strip() == test.answer.strip()
@@ -1705,40 +1747,42 @@ def student_test(test_id):
             is_correct = user_answers == correct_answers
         else:
             is_correct = user_answer.lower().strip() == test.answer.lower().strip()
-        
+
         # Обновляем
         test_info['completed'] = True
         test_info['score'] = 100
         test_info['attempts'] = test_info.get('attempts', 0) + 1
         test_info['last_answer'] = user_answer
         test_info['is_correct'] = is_correct
-        
+
         # Присваиваем обратно
         progress.progress = data
-        
+
         if is_correct:
             current_user.itcoins += 10
             flash(f'✅ Правильно! Вы получили 10 ITCoins!', 'success')
         else:
             flash(f'❌ Неправильно. Правильный ответ: {test.answer}', 'warning')
-        
+
         db.session.commit()
-        
+
         return redirect(url_for('student_lesson', lesson_id=lesson.id))
-    
+
     return render_template('student/test.html', test=test)
 
 # маршрут для отметки теории
+
+
 @app.route('/student/lesson/<int:lesson_id>/theory_viewed', methods=['POST'])
 @login_required
 def mark_theory_viewed(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    
+
     progress = ProgressModule.query.filter_by(
         user_id=current_user.id,
         module_id=lesson.module_id
     ).first()
-    
+
     if not progress:
         module = Module.query.get(lesson.module_id)
         progress = ProgressModule(
@@ -1747,7 +1791,7 @@ def mark_theory_viewed(lesson_id):
         )
         progress.init_progress(module)
         db.session.add(progress)
-    
+
     if str(lesson.id) not in progress.progress.get('lessons', {}):
         progress.progress['lessons'][str(lesson.id)] = {
             'title': lesson.title,
@@ -1757,40 +1801,45 @@ def mark_theory_viewed(lesson_id):
             'tasks': {},
             'theory_viewed': False
         }
-    
+
     progress.progress['lessons'][str(lesson.id)]['theory_viewed'] = True
-    
+
     # Проверяем, можно ли завершить урок
-    lesson_tests = progress.progress['lessons'][str(lesson.id)].get('tests', {})
-    all_tests_completed = all(t.get('completed', False) for t in lesson_tests.values())
-    all_tasks_completed = all(t.get('completed', False) for t in progress.progress['lessons'][str(lesson.id)].get('tasks', {}).values())
-    
+    lesson_tests = progress.progress['lessons'][str(
+        lesson.id)].get('tests', {})
+    all_tests_completed = all(t.get('completed', False)
+                              for t in lesson_tests.values())
+    all_tasks_completed = all(t.get('completed', False)
+                              for t in progress.progress['lessons'][str(lesson.id)].get('tasks', {}).values())
+
     if all_tests_completed and all_tasks_completed:
         progress.progress['lessons'][str(lesson.id)]['completed'] = True
         if str(lesson.id) not in progress.progress.get('completed_lessons', []):
             progress.progress['completed_lessons'].append(str(lesson.id))
         progress.update_percentage()
         flash('🎉 Поздравляем! Вы завершили урок!', 'success')
-    
+
     db.session.commit()
-    
+
     return {'success': True}
 
-# маршрут для завершения задания 
+# маршрут для завершения задания
+
+
 @app.route('/student/task/<int:task_id>/complete', methods=['POST'])
 @login_required
 def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     lesson = Lesson.query.get(task.lesson_id)
-    
+
     progress = ProgressModule.query.filter_by(
         user_id=current_user.id,
         module_id=lesson.module_id
     ).first()
-    
+
     if not progress:
         return {'success': False}, 400
-    
+
     if str(lesson.id) not in progress.progress.get('lessons', {}):
         progress.progress['lessons'][str(lesson.id)] = {
             'title': lesson.title,
@@ -1800,7 +1849,7 @@ def complete_task(task_id):
             'tasks': {},
             'theory_viewed': False
         }
-    
+
     if str(task.id) not in progress.progress['lessons'][str(lesson.id)].get('tasks', {}):
         progress.progress['lessons'][str(lesson.id)]['tasks'][str(task.id)] = {
             'title': task.title,
@@ -1808,34 +1857,41 @@ def complete_task(task_id):
             'submitted': False,
             'score': 0
         }
-    
-    task_info = progress.progress['lessons'][str(lesson.id)]['tasks'][str(task.id)]
-    
+
+    task_info = progress.progress['lessons'][str(
+        lesson.id)]['tasks'][str(task.id)]
+
     if not task_info.get('completed', False):
         task_info['completed'] = True
         task_info['submitted'] = True
-        
+
         # Проверяем, можно ли завершить урок
-        lesson_tests = progress.progress['lessons'][str(lesson.id)].get('tests', {})
-        all_tests_completed = all(t.get('completed', False) for t in lesson_tests.values())
-        theory_viewed = progress.progress['lessons'][str(lesson.id)].get('theory_viewed', False)
-        all_tasks_completed = all(t.get('completed', False) for t in progress.progress['lessons'][str(lesson.id)].get('tasks', {}).values())
-        
+        lesson_tests = progress.progress['lessons'][str(
+            lesson.id)].get('tests', {})
+        all_tests_completed = all(t.get('completed', False)
+                                  for t in lesson_tests.values())
+        theory_viewed = progress.progress['lessons'][str(
+            lesson.id)].get('theory_viewed', False)
+        all_tasks_completed = all(t.get('completed', False) for t in progress.progress['lessons'][str(
+            lesson.id)].get('tasks', {}).values())
+
         if all_tests_completed and theory_viewed and all_tasks_completed:
             progress.progress['lessons'][str(lesson.id)]['completed'] = True
             if str(lesson.id) not in progress.progress.get('completed_lessons', []):
                 progress.progress['completed_lessons'].append(str(lesson.id))
             progress.update_percentage()
             flash('🎉 Поздравляем! Вы завершили урок!', 'success')
-        
+
         db.session.commit()
         return {'success': True}
-    
+
     return {'success': False}, 400
 
 # ============================================================
 # ПРОГРЕСС (ТЕСТ) МАРШРУТЫ
 # ============================================================
+
+
 @app.route('/debug/progress')
 @login_required
 def debug_progress():
@@ -1844,7 +1900,7 @@ def debug_progress():
         user_id=current_user.id,
         module_id=1  # ID модуля, который проверяете
     ).first()
-    
+
     if progress:
         return f"""
         <h3>Прогресс пользователя {current_user.username}</h3>
@@ -1860,15 +1916,18 @@ def debug_progress():
 # ============================================================
 # РОДИТЕЛЬ МАРШРУТЫ
 # ============================================================
+
+
 @app.route('/parent/dashboard')
 @login_required
 @role_required('parent')
 def parent_dashboard():
     import json
-    
-    children_relations = Parent.query.filter_by(id_parent=current_user.id).all()
+
+    children_relations = Parent.query.filter_by(
+        id_parent=current_user.id).all()
     children_data = []
-    
+
     for rel in children_relations:
         child = User.query.get(rel.id_child)
         if child:
@@ -1876,17 +1935,17 @@ def parent_dashboard():
             total_percent = 0
             total_completed_tests = 0
             total_tests_count = 0
-            
+
             for module in Module.query.all():
                 progress = ProgressModule.query.filter_by(
                     user_id=child.id,
                     module_id=module.id
                 ).first()
-                
+
                 module_percent = 0
                 module_completed_tests = 0
                 module_tests_count = 0
-                
+
                 if progress:
                     # Получаем данные
                     if isinstance(progress.progress, str):
@@ -1896,7 +1955,7 @@ def parent_dashboard():
                             progress_data = {}
                     else:
                         progress_data = progress.progress if progress.progress else {}
-                    
+
                     # Считаем пройденные тесты
                     for lesson_data in progress_data.get('lessons', {}).values():
                         for test_data in lesson_data.get('tests', {}).values():
@@ -1907,20 +1966,22 @@ def parent_dashboard():
                                 total_tests_count += 1
                             else:
                                 total_tests_count += 1
-                    
+
                     # Прогресс модуля = процент пройденных тестов
                     if module_tests_count > 0:
-                        module_percent = int((module_completed_tests / module_tests_count) * 100)
+                        module_percent = int(
+                            (module_completed_tests / module_tests_count) * 100)
                     total_percent += module_percent
-                
+
                 modules_progress.append({
                     'module': module,
                     'progress': module_percent
                 })
-            
+
             module_count = Module.query.count()
-            avg_progress = int(total_percent / module_count) if module_count > 0 else 0
-            
+            avg_progress = int(
+                total_percent / module_count) if module_count > 0 else 0
+
             children_data.append({
                 'child': child,
                 'total_progress': avg_progress,
@@ -1931,7 +1992,7 @@ def parent_dashboard():
                 'streak_days': getattr(child, 'streak_days', 0),
                 'modules_progress': modules_progress
             })
-    
+
     return render_template('parent/dashboard.html', children_data=children_data)
 
 
@@ -1940,15 +2001,16 @@ def parent_dashboard():
 @role_required('parent')
 def parent_child_progress(child_id):
     import json
-    
+
     # Проверяем, что ребенок принадлежит родителю
-    relation = Parent.query.filter_by(id_parent=current_user.id, id_child=child_id).first()
+    relation = Parent.query.filter_by(
+        id_parent=current_user.id, id_child=child_id).first()
     if not relation:
         flash('У вас нет доступа к этому ребенку', 'danger')
         return redirect(url_for('parent_dashboard'))
-    
+
     child = User.query.get_or_404(child_id)
-    
+
     # Получаем прогресс по модулям
     modules_progress = []
     total_lessons = 0
@@ -1957,13 +2019,13 @@ def parent_child_progress(child_id):
     completed_tests = 0
     total_tasks = 0
     completed_tasks = 0
-    
+
     for module in Module.query.all():
         progress = ProgressModule.query.filter_by(
             user_id=child.id,
             module_id=module.id
         ).first()
-        
+
         module_completed_tests = 0
         module_total_tests = 0
         module_completed_tasks = 0
@@ -1971,7 +2033,7 @@ def parent_child_progress(child_id):
         module_completed_lessons = 0
         module_total_lessons = len(module.lessons_list)
         module_percent = 0
-        
+
         if progress:
             # Преобразуем строку в словарь
             if isinstance(progress.progress, str):
@@ -1981,7 +2043,7 @@ def parent_child_progress(child_id):
                     progress_data = {}
             else:
                 progress_data = progress.progress if progress.progress else {}
-            
+
             # Считаем пройденные тесты
             for lesson_data in progress_data.get('lessons', {}).values():
                 for test_data in lesson_data.get('tests', {}).values():
@@ -1990,23 +2052,25 @@ def parent_child_progress(child_id):
                     if test_data.get('completed', False):
                         module_completed_tests += 1
                         completed_tests += 1
-                
+
                 for task_data in lesson_data.get('tasks', {}).values():
                     module_total_tasks += 1
                     total_tasks += 1
                     if task_data.get('completed', False):
                         module_completed_tasks += 1
                         completed_tasks += 1
-            
+
             # Считаем пройденные уроки
-            module_completed_lessons = len(progress_data.get('completed_lessons', []))
+            module_completed_lessons = len(
+                progress_data.get('completed_lessons', []))
             completed_lessons += module_completed_lessons
             total_lessons += module_total_lessons
-            
+
             # Прогресс модуля = процент пройденных тестов
             if module_total_tests > 0:
-                module_percent = int((module_completed_tests / module_total_tests) * 100)
-            
+                module_percent = int(
+                    (module_completed_tests / module_total_tests) * 100)
+
             modules_progress.append({
                 'module': module,
                 'progress': module_percent,
@@ -2030,35 +2094,36 @@ def parent_child_progress(child_id):
                 'total_tasks': 0,
                 'progress_data': {}
             })
-    
+
     # Получаем результаты тестов (уникальные, без дубликатов)
-    test_results = TestResult.query.filter_by(user_id=child.id).order_by(TestResult.date.desc()).all()
-    
+    test_results = TestResult.query.filter_by(
+        user_id=child.id).order_by(TestResult.date.desc()).all()
+
     # Удаляем дубликаты (оставляем последнюю попытку для каждого теста)
     unique_results = {}
     for result in test_results:
         key = result.test_id
         if key not in unique_results:
             unique_results[key] = result
-    
+
     unique_results_list = list(unique_results.values())
-    
+
     # Для каждого результата подгружаем название теста и урока
     for result in unique_results_list:
         result.test = Test.query.get(result.test_id)
         if result.test:
             result.lesson = Lesson.query.get(result.test.lesson_id)
-    
+
     return render_template('parent/child_progress.html',
-                         child=child,
-                         modules_progress=modules_progress,
-                         test_results=unique_results_list,
-                         total_lessons=total_lessons,
-                         completed_lessons=completed_lessons,
-                         total_tests=total_tests,
-                         completed_tests=completed_tests,
-                         total_tasks=total_tasks,
-                         completed_tasks=completed_tasks)
+                           child=child,
+                           modules_progress=modules_progress,
+                           test_results=unique_results_list,
+                           total_lessons=total_lessons,
+                           completed_lessons=completed_lessons,
+                           total_tests=total_tests,
+                           completed_tests=completed_tests,
+                           total_tasks=total_tasks,
+                           completed_tasks=completed_tasks)
 
 
 @app.route('/parent/child/<int:child_id>/send_report', methods=['POST'])
@@ -2066,16 +2131,17 @@ def parent_child_progress(child_id):
 @role_required('parent')
 def parent_send_report(child_id):
     """Отправка отчета о прогрессе на email"""
-    relation = Parent.query.filter_by(id_parent=current_user.id, id_child=child_id).first()
+    relation = Parent.query.filter_by(
+        id_parent=current_user.id, id_child=child_id).first()
     if not relation:
         return {'success': False}, 403
-    
+
     child = User.query.get_or_404(child_id)
-    
+
     # Здесь можно отправить email с отчетом
     # Пока просто возвращаем успех
     print(f"Отчет отправлен для {child.username} на {current_user.email}")
-    
+
     return {'success': True}
 
 
@@ -2088,13 +2154,13 @@ def chat_index():
     """Список чатов пользователя"""
     user_id = current_user.id
     user_id_str = str(user_id)
-    
+
     # Ищем чаты, где users содержит ID пользователя
     # SQLite: используем LIKE для поиска в JSON
     chats = Chat.query.filter(
         Chat.users.cast(db.String).like(f'%{user_id_str}%')
     ).all()
-    
+
     chat_data = []
     for chat in chats:
         group = Group.query.get(chat.group_id) if chat.group_id else None
@@ -2103,7 +2169,7 @@ def chat_index():
             'group': group,
             'unread_count': 0
         })
-    
+
     return render_template('chat/index.html', chats=chat_data)
 
 
@@ -2111,14 +2177,15 @@ def chat_index():
 @login_required
 def chat_room(chat_id):
     chat = Chat.query.get_or_404(chat_id)
-    
+
     if current_user.id not in chat.users:
         flash('У вас нет доступа к этому чату', 'danger')
         return redirect(url_for('chat_index'))
-    
-    messages = Message.query.filter_by(chat_id=chat_id).order_by(Message.datetime).all()
+
+    messages = Message.query.filter_by(
+        chat_id=chat_id).order_by(Message.datetime).all()
     group = Group.query.get(chat.group_id) if chat.group_id else None
-    
+
     return render_template('chat/room.html', chat=chat, messages=messages, group=group)
 
 
@@ -2126,11 +2193,11 @@ def chat_room(chat_id):
 @login_required
 def chat_send(chat_id):
     chat = Chat.query.get_or_404(chat_id)
-    
+
     if current_user.id not in chat.users:
         flash('У вас нет доступа к этому чату', 'danger')
         return redirect(url_for('chat_index'))
-    
+
     message_text = request.form.get('message')
     if message_text and message_text.strip():
         message = Message(
@@ -2141,7 +2208,7 @@ def chat_send(chat_id):
         )
         db.session.add(message)
         db.session.commit()
-    
+
     return redirect(url_for('chat_room', chat_id=chat_id))
 
 
@@ -2165,8 +2232,8 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         print("✅ База данных инициализирована")
-        
+
         create_default_users()
         create_demo_content()
-    
+
     app.run(debug=True)

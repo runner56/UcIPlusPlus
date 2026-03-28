@@ -1,0 +1,682 @@
+{% extends "base.html" %}
+
+{% block title %}Bug Hunter | UcI++{% endblock %}
+
+{% block content %}
+<style>
+    /* ========== СВЕТЛЫЙ ДИЗАЙН С ТЕНЬЮ КАК НА ОСНОВНОМ САЙТЕ ========== */
+    .find-bug-game {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Hero секция */
+    .game-hero {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .game-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec489a);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .game-hero p {
+        color: #6b7280;
+        font-size: 1.1rem;
+    }
+
+    /* Карточка игры - белая с тенью как на основном сайте */
+    .game-card {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.1), 0 5px 12px -4px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .game-card:hover {
+        box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Статистика */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.1);
+        border-color: #6366f1;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        font-family: monospace;
+    }
+
+    .timer-low .stat-value {
+        color: #ef4444;
+        animation: pulse 0.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    /* Панель управления */
+    .control-panel {
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: white;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: center;
+    }
+
+    /* Кнопки */
+    .btn-game {
+        padding: 0.75rem 1.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #374151;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .btn-game:hover {
+        background: #f9fafb;
+        border-color: #6366f1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        color: #4f46e5;
+    }
+
+    .btn-primary-game {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary-game:hover {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+
+    .lang-active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+    }
+
+    .lang-active:hover {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+    }
+
+    /* Редактор кода */
+    .code-editor {
+        margin: 1.5rem;
+        background: #1e1e2e;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid #313244;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .editor-header {
+        background: #181825;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid #313244;
+        font-size: 0.85rem;
+        color: #cdd6f4;
+    }
+
+    .editor-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #f38ba8;
+    }
+
+    .editor-dot:nth-child(2) { background: #fab387; }
+    .editor-dot:nth-child(3) { background: #a6e3a1; }
+
+    .code-content {
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 1rem 0;
+        background: #1e1e2e;
+    }
+
+    .code-line {
+        display: flex;
+        padding: 0.25rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        white-space: pre-wrap;
+    }
+
+    .code-line:hover {
+        background-color: rgba(203, 166, 247, 0.15);
+        border-left-color: #cba6f7;
+    }
+
+    /* Изменение цвета текста при наведении на строки кода */
+    .code-line:hover .line-number {
+        color: #cba6f7;
+    }
+
+    .code-line:hover .line-code {
+        color: #ffffff;
+    }
+
+    .line-number {
+        width: 50px;
+        color: #6c7086;
+        user-select: none;
+        text-align: right;
+        padding-right: 1rem;
+        font-family: 'Fira Code', monospace;
+        transition: color 0.2s ease;
+    }
+
+    .line-code {
+        color: #cdd6f4;
+        flex: 1;
+        white-space: pre-wrap;
+        font-family: 'Fira Code', 'Courier New', monospace;
+        transition: color 0.2s ease;
+    }
+
+    /* Состояния строк */
+    .correct-line {
+        background-color: rgba(166, 227, 161, 0.25) !important;
+        border-left-color: #a6e3a1 !important;
+    }
+
+    .wrong-line {
+        background-color: rgba(243, 139, 168, 0.25) !important;
+        border-left-color: #f38ba8 !important;
+    }
+
+    /* Отключаем эффект наведения для уже отмеченных строк */
+    .correct-line:hover, .wrong-line:hover {
+        background-color: inherit;
+    }
+    
+    .correct-line:hover .line-number,
+    .correct-line:hover .line-code,
+    .wrong-line:hover .line-number,
+    .wrong-line:hover .line-code {
+        color: inherit;
+    }
+
+    /* Фикбек компонент */
+    .feedback-component {
+        margin: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .feedback-icon {
+        font-size: 1.5rem;
+    }
+
+    .feedback-message {
+        font-size: 0.95rem;
+        flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .find-bug-game { padding: 1rem; }
+        .game-hero h1 { font-size: 2rem; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .control-panel {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-game {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="find-bug-game">
+    <div class="game-hero">
+        <h1>🐞 Bug Hunter</h1>
+        <p>Найди синтаксическую ошибку быстрее, чем компилятор! Каждый баг — +10 ITCoins</p>
+    </div>
+
+    <div class="game-card">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">🏆 ITCOINS</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⏱️ ВРЕМЯ</div>
+                <div class="stat-value" id="timer">30</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💻 ЯЗЫК</div>
+                <div class="stat-value" id="lang">C++</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn-game" id="cppBtn" onclick="setLanguage('cpp')">
+                ⚙️ C++
+            </button>
+            <button class="btn-game" id="pythonBtn" onclick="setLanguage('python')">
+                🐍 Python
+            </button>
+            <button class="btn-game btn-primary-game" onclick="startNewGame()">
+                🎮 СТАРТ ИГРЫ
+            </button>
+        </div>
+
+        <div class="code-editor">
+            <div class="editor-header">
+                <div class="editor-dot"></div>
+                <div class="editor-dot"></div>
+                <div class="editor-dot"></div>
+                <span style="margin-left: 0.5rem;">🔍 найди синтаксическую ошибку — кликни на строку</span>
+            </div>
+            <div id="codeContainer" class="code-content">
+                <div style="text-align: center; padding: 2rem; color: #6c7086;">
+                    ✨ Нажми «СТАРТ ИГРЫ», чтобы начать ✨
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-component" id="feedback">
+            <div class="feedback-icon">💡</div>
+            <div class="feedback-message">Готов проверить свои навыки отладки? Выбери язык и жми старт!</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // База заданий
+    const TASKS = {
+        cpp: [
+            {
+                code: `#include <iostream>
+using namespace std;
+
+int main() {
+    int x = 10
+    cout << x;
+    return 0;
+}`,
+                bugLine: 5,
+                message: "Пропущена точка с запятой (;) после объявления переменной"
+            },
+            {
+                code: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello World"
+    return 0;
+}`,
+                bugLine: 5,
+                message: "Отсутствует точка с запятой в конце строки вывода"
+            },
+            {
+                code: `#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 5;
+    if(a > 2) {
+        cout << "OK"
+    }
+    return 0;
+}`,
+                bugLine: 7,
+                message: "Нет точки с запятой после cout"
+            },
+            {
+                code: `#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 5;
+    if(a > 2 {
+        cout << "OK";
+    }
+    return 0;
+}`,
+                bugLine: 6,
+                message: "Потеряна закрывающая скобка ')' в условии if"
+            },
+            {
+                code: `#include <iostream>
+using namespace std;
+
+int main()
+    cout << "no braces";
+    return 0;
+}`,
+                bugLine: 5,
+                message: "Отсутствуют фигурные скобки {} для тела функции main"
+            }
+        ],
+        python: [
+            {
+                code: `def calculate(a,b)
+    return a + b`,
+                bugLine: 1,
+                message: "Пропущено двоеточие ':' после объявления функции"
+            },
+            {
+                code: `for i in range(10)
+    print(i)`,
+                bugLine: 1,
+                message: "После for ... range() необходимо двоеточие ':'"
+            },
+            {
+                code: `if score > 100
+    print("Victory!")`,
+                bugLine: 1,
+                message: "Отсутствует двоеточие после условия if"
+            },
+            {
+                code: `def test_function():
+print("No indent")`,
+                bugLine: 2,
+                message: "Ошибка отступа: тело функции должно иметь отступ (4 пробела или tab)"
+            },
+            {
+                code: `class Player
+    def __init__(self):
+        self.name = name`,
+                bugLine: 1,
+                message: "После имени класса отсутствует двоеточие ':'"
+            }
+        ]
+    };
+
+    let currentScore = 0;
+    let currentLanguage = "cpp";
+    let currentTask = null;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let isGameActive = false;
+    let isWaitingForNext = false;
+
+    const scoreElement = document.getElementById('score');
+    const timerElement = document.getElementById('timer');
+    const langElement = document.getElementById('lang');
+    const codeContainer = document.getElementById('codeContainer');
+    const feedbackDiv = document.getElementById('feedback');
+
+    function updateFeedback(message, type = 'info') {
+        let icon = '💡';
+        let bgColor = '#fef9e3';
+        let textColor = '#92400e';
+        let borderColor = '#fbbf24';
+        
+        if (type === 'success') {
+            icon = '✅';
+            bgColor = '#f0fdf4';
+            textColor = '#166534';
+            borderColor = '#86efac';
+        } else if (type === 'error') {
+            icon = '❌';
+            bgColor = '#fef2f2';
+            textColor = '#991b1b';
+            borderColor = '#fecaca';
+        }
+        
+        feedbackDiv.innerHTML = `
+            <div class="feedback-icon">${icon}</div>
+            <div class="feedback-message" style="color: ${textColor};">${message}</div>
+        `;
+        feedbackDiv.style.background = bgColor;
+        feedbackDiv.style.borderLeft = `4px solid ${borderColor}`;
+    }
+
+    function updateUI() {
+        scoreElement.textContent = currentScore;
+        timerElement.textContent = timeLeft;
+        if (timeLeft <= 10) {
+            timerElement.parentElement.classList.add('timer-low');
+        } else {
+            timerElement.parentElement.classList.remove('timer-low');
+        }
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function startTimer() {
+        stopTimer();
+        timerInterval = setInterval(() => {
+            if (!isGameActive || isWaitingForNext) return;
+            
+            if (timeLeft <= 1) {
+                stopTimer();
+                isGameActive = false;
+                updateFeedback(`⏰ Время вышло! Вы заработали ${currentScore} ITCoins. Нажмите «СТАРТ», чтобы начать новую игру.`, 'error');
+                codeContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #f38ba8;">
+                        ⏰ GAME OVER ⏰<br>
+                        <span style="font-size: 0.9rem; margin-top: 0.5rem; display: block; color: #6c7086;">Нажмите «СТАРТ ИГРЫ» для новой попытки</span>
+                    </div>
+                `;
+            } else {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                if (timeLeft <= 10) {
+                    timerElement.parentElement.classList.add('timer-low');
+                }
+            }
+        }, 1000);
+    }
+
+    function loadRandomTask() {
+        const tasks = TASKS[currentLanguage];
+        const randomIndex = Math.floor(Math.random() * tasks.length);
+        return { ...tasks[randomIndex] };
+    }
+
+    function renderCode(task) {
+        if (!task) return;
+        const lines = task.code.split('\n');
+        let html = '';
+        lines.forEach((line, index) => {
+            const lineNum = index + 1;
+            const escapedLine = line.replace(/[&<>]/g, (m) => {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+            html += `
+                <div class="code-line" data-line="${lineNum}" onclick="checkLine(${lineNum}, this)">
+                    <span class="line-number">${lineNum}</span>
+                    <span class="line-code">${escapedLine || ' '}</span>
+                </div>
+            `;
+        });
+        codeContainer.innerHTML = html;
+    }
+
+    function loadNewRound(resetScore = false) {
+        if (resetScore) {
+            currentScore = 0;
+            timeLeft = 30;
+            updateUI();
+        }
+        
+        currentTask = loadRandomTask();
+        if (!currentTask) {
+            updateFeedback('Ошибка загрузки заданий!', 'error');
+            return false;
+        }
+        
+        renderCode(currentTask);
+        isGameActive = true;
+        isWaitingForNext = false;
+        updateFeedback(`🔍 Ищи ошибку! Кликни на строку с синтаксическим багом.`, 'info');
+        return true;
+    }
+
+    function startNewGame() {
+        stopTimer();
+        currentScore = 0;
+        timeLeft = 30;
+        updateUI();
+        
+        const success = loadNewRound(true);
+        if (success) {
+            startTimer();
+            updateFeedback(`🎮 Игра началась! Язык: ${currentLanguage.toUpperCase()}. Найди синтаксическую ошибку!`, 'success');
+        }
+    }
+
+    function setLanguage(lang) {
+        if (isGameActive && !isWaitingForNext) {
+            updateFeedback('Нельзя сменить язык во время активной игры! Нажмите «СТАРТ» для новой игры.', 'error');
+            return;
+        }
+        
+        currentLanguage = lang;
+        langElement.textContent = lang.toUpperCase();
+        
+        const cppBtn = document.getElementById('cppBtn');
+        const pythonBtn = document.getElementById('pythonBtn');
+        
+        if (lang === 'cpp') {
+            cppBtn.classList.add('lang-active');
+            pythonBtn.classList.remove('lang-active');
+        } else {
+            pythonBtn.classList.add('lang-active');
+            cppBtn.classList.remove('lang-active');
+        }
+        
+        const previewTask = TASKS[lang][0];
+        if (previewTask && !isGameActive) {
+            renderCode(previewTask);
+            updateFeedback(`Язык изменён на ${lang.toUpperCase()}. Нажмите «СТАРТ», чтобы начать!`, 'info');
+        }
+    }
+
+    function checkLine(lineNumber, element) {
+        if (!isGameActive || isWaitingForNext) {
+            updateFeedback('Игра не активна! Нажмите «СТАРТ ИГРЫ».', 'error');
+            return;
+        }
+        
+        if (!currentTask) return;
+        
+        if (lineNumber === currentTask.bugLine) {
+            currentScore += 10;
+            updateUI();
+            element.classList.add('correct-line');
+            updateFeedback(`🎉 ПРАВИЛЬНО! +10 ITCoins! (${currentTask.message})`, 'success');
+            
+            isGameActive = false;
+            isWaitingForNext = true;
+            
+            const allLines = document.querySelectorAll('.code-line');
+            allLines.forEach(line => {
+                line.style.pointerEvents = 'none';
+            });
+            
+            setTimeout(() => {
+                const nextTask = loadRandomTask();
+                if (nextTask) {
+                    currentTask = nextTask;
+                    renderCode(currentTask);
+                    isGameActive = true;
+                    isWaitingForNext = false;
+                    
+                    updateFeedback(`🔍 Новое задание! Ищи ошибку... (Время продолжает идти)`, 'info');
+                } else {
+                    updateFeedback('Ошибка загрузки!', 'error');
+                }
+            }, 800);
+        } else {
+            currentScore = Math.max(0, currentScore - 5);
+            updateUI();
+            element.classList.add('wrong-line');
+            updateFeedback(`❌ НЕВЕРНО! В строке ${lineNumber} нет ошибки. -5 ITCoins.`, 'error');
+            
+            setTimeout(() => {
+                element.classList.remove('wrong-line');
+            }, 400);
+        }
+    }
+
+    // Инициализация
+    setLanguage('cpp');
+    
+    window.setLanguage = setLanguage;
+    window.startNewGame = startNewGame;
+    window.checkLine = checkLine;
+</script>
+{% endblock %}
