@@ -1,0 +1,34 @@
+[
+    {
+        "title": "Основы Python",
+        "type": "gold",
+        "status": "received",
+        "date": "15.10.2023",
+        "unique_id": "PY-2023-001",
+        "progress": 100
+    },
+    {
+        "title": "Основы C++",
+        "type": "silver",
+        "status": "received",
+        "date": "02.09.2023",
+        "unique_id": "CPP-2023-045",
+        "progress": 100
+    },
+    {
+        "title": "Основы Python для детей",
+        "type": "bronze",
+        "status": "locked",
+        "date": "20.11.2023",
+        "unique_id": "PYK-2023-112",
+        "progress": 100
+    },
+    {
+        "title": "Продвинутый Python",
+        "type": null,
+        "status": "locked",
+        "date": null,
+        "unique_id": null,
+        "progress": 65
+    }
+]
