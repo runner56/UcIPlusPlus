@@ -19,57 +19,57 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.svg') }}">
 
     <!-- TinyMCE Editor -->
-<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
-<script>
-    // Функция для инициализации TinyMCE
-    function initTinyMCE(selector) {
-        if (typeof tinymce !== 'undefined' && document.querySelector(selector)) {
-            tinymce.init({
-                selector: selector,
-                height: 400,
-                menubar: true,
-                plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                ],
-                toolbar: 'undo redo | blocks | ' +
-                    'bold italic backcolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | help | code | fullscreen',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.6; }',
-                language: 'ru',
-                skin: 'oxide',
-                content_css: 'default',
-                branding: false
-            });
-        }
-    }
-    
-    // Инициализация при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-        initTinyMCE('.tinymce-editor');
-    });
-    
-    // Переинициализация при открытии модальных окон
-    document.addEventListener('shown.bs.modal', function() {
-        setTimeout(function() {
-            if (document.querySelector('.modal .tinymce-editor')) {
-                if (typeof tinymce !== 'undefined') {
-                    tinymce.remove('.modal .tinymce-editor');
-                    initTinyMCE('.modal .tinymce-editor');
-                }
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
+    <script>
+        // Функция для инициализации TinyMCE
+        function initTinyMCE(selector) {
+            if (typeof tinymce !== 'undefined' && document.querySelector(selector)) {
+                tinymce.init({
+                    selector: selector,
+                    height: 400,
+                    menubar: true,
+                    plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                    ],
+                    toolbar: 'undo redo | blocks | ' +
+                        'bold italic backcolor | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | help | code | fullscreen',
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.6; }',
+                    language: 'ru',
+                    skin: 'oxide',
+                    content_css: 'default',
+                    branding: false
+                });
             }
-        }, 100);
-    });
-    
-    // Очистка при закрытии модальных окон
-    document.addEventListener('hidden.bs.modal', function() {
-        if (typeof tinymce !== 'undefined') {
-            tinymce.remove('.modal .tinymce-editor');
         }
-    });
-</script>
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function () {
+            initTinyMCE('.tinymce-editor');
+        });
+
+        // Переинициализация при открытии модальных окон
+        document.addEventListener('shown.bs.modal', function () {
+            setTimeout(function () {
+                if (document.querySelector('.modal .tinymce-editor')) {
+                    if (typeof tinymce !== 'undefined') {
+                        tinymce.remove('.modal .tinymce-editor');
+                        initTinyMCE('.modal .tinymce-editor');
+                    }
+                }
+            }, 100);
+        });
+
+        // Очистка при закрытии модальных окон
+        document.addEventListener('hidden.bs.modal', function () {
+            if (typeof tinymce !== 'undefined') {
+                tinymce.remove('.modal .tinymce-editor');
+            }
+        });
+    </script>
 </head>
 
 <body>
@@ -77,19 +77,23 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/logo.svg') }}" 
-                     alt="i++" 
-                     style="height: 32px; width: auto;">
-                     CodeQuest
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="i++"
+                    style="height: 32px; width: auto;">
+                CodeQuest
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
- 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-home"></i> Главная
+                        </a>
+                    </li>
+
                     {% if current_user.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
@@ -122,6 +126,8 @@
                             <i class="fas fa-coins text-warning"></i> Начислить ITCoins
                         </a>
                     </li>
+
+
                     {% elif current_user.role == 'parent' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('parent_dashboard') }}">
@@ -129,6 +135,11 @@
                         </a>
                     </li>
                     {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('store') }}"">
+                            <i class="fas fa-graduation-cap"></i> Магазин
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('student_achievements') }}">
                             <i class="fas fa-trophy"></i> Достижения
@@ -152,24 +163,27 @@
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" 
-                                 class="rounded-circle me-1" width="30" height="30">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown">
+                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}"
+                                class="rounded-circle me-1" width="30" height="30">
                             {{ current_user.username }}
                             {% if current_user.itcoins > 0 %}
-                                <span class="badge bg-warning text-dark ms-1">
-                                    <i class="fas fa-coins"></i> {{ current_user.itcoins }}
-                                </span>
+                            <span class="badge bg-warning text-dark ms-1">
+                                <i class="fas fa-coins"></i> {{ current_user.itcoins }}
+                            </span>
                             {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ url_for('profile') }}">
-                                <i class="fas fa-user"></i> Профиль
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
+                                    <i class="fas fa-user"></i> Профиль
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt"></i> Выход
-                            </a></li>
+                                    <i class="fas fa-sign-out-alt"></i> Выход
+                                </a></li>
                         </ul>
                     </li>
                     {% else %}
