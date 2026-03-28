@@ -1,26 +1,41 @@
-# Flask Authentication Template
+# CodeQuest 🚀
 
-A Flask application with role-based authentication system for hackathons and quick project starts.
+Интерактивная веб-платформа для обучения программированию школьников 7–15 лет. Проект разработан в рамках хакатона (март 2026).
 
-## Features
+## 📖 О проекте
 
-- User registration and login
-- Role-based access control (User, Moderator, Admin)
-- Admin panel for user management
-- Flask-Login for authentication
-- SQLite database (easily switchable to PostgreSQL/MySQL)
-- Bootstrap 5 responsive design
-- Form validation with Flask-WTF
+**CodeQuest** — это образовательная платформа, где обучение программированию превращается в увлекательное приключение. Пользователи проходят уроки, выполняют мини-проекты, проходят тесты и отслеживают свой прогресс. Интерфейс выполнен в ярком, мотивирующем стиле.
 
-## Quick Start
+### Ключевые особенности
 
-### Prerequisites
-- Python 3.8+
-- pip
+- 🎓 **Обучение через практику**: каждый урок сочетает теорию, практические задания и тесты
+- 👥 **Ролевая система**: пользователи, модераторы, администраторы
+- 📊 **Отслеживание прогресса**: визуализация достижений и шкала прогресса
+- 🛡️ **Родительский контроль**: мониторинг активности детей
+- 💬 **Сообщество**: чат и рейтинги для соревновательного элемента
+- 🎮 **Геймификация**: награды и достижения за успехи
 
-### Installation
+## 🛠 Технологии
 
-1. Clone the repository:
+- **Python 3.8+**
+- **Flask 3.0.0** — микрофреймворк
+- **Flask-SQLAlchemy 3.1.1** — ORM для работы с БД
+- **Flask-Login 0.6.3** — управление аутентификацией
+- **Flask-WTF 1.2.1** — работа с формами и валидация
+- **Werkzeug 3.0.1** — утилиты WSGI
+- **Bootstrap 5** — адаптивный дизайн
+- **SQLite** — база данных (легко переключается на PostgreSQL)
+
+## 📋 Требования
+
+- Python 3.8 или выше
+- pip (менеджер пакетов Python)
+- git
+
+## 🚀 Быстрый старт
+
+### 1. Клонирование репозитория
+
 ```bash
-git clone https://github.com/runner56/UC-iPlusPlus.git
-cd UC-iPlusPlus
+git clone https://github.com/runner56/UcIPlusPlus.git
+cd UcIPlusPlus
