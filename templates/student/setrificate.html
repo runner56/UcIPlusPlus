@@ -1,0 +1,690 @@
+{% extends "base.html" %}
+
+{% block title %}Сертификаты | CodeQuest{% endblock %}
+
+{% block content %}
+<style>
+    /* ========== CSS стили для страницы сертификатов ========== */
+    :root {
+        --primary-color: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary-color: #10b981;
+        --dark-bg: #0f172a;
+        --card-bg: #1e293b;
+        --text-light: #f1f5f9;
+        --text-gray: #94a3b8;
+        --border-color: #334155;
+    }
+
+    .certificates-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .certificates-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .certificates-header h1 {
+        font-size: 2.5rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+
+    .certificates-header p {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+
+    .certificate-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+    }
+
+    .stat-number.regular { color: #3b82f6; }
+    .stat-number.silver { color: #94a3b8; }
+    .stat-number.gold { color: #f59e0b; }
+
+    .filters {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1.5rem;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-light);
+        border-radius: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .filter-btn.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .certificates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+
+    .certificate-card {
+        background: var(--card-bg);
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+
+    .certificate-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .certificate-header {
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .certificate-header.regular {
+        background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    }
+
+    .certificate-header.silver {
+        background: linear-gradient(135deg, #374151, #4b5563);
+    }
+
+    .certificate-header.gold {
+        background: linear-gradient(135deg, #b45309, #d97706);
+    }
+
+    .certificate-icon {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .certificate-level {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.2);
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        margin-top: 0.5rem;
+    }
+
+    .certificate-body {
+        padding: 1.5rem;
+    }
+
+    .course-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+
+    .course-description {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .certificate-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+    }
+
+    .date {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .certificate-id {
+        font-family: monospace;
+        background: rgba(99, 102, 241, 0.2);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .view-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .view-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* Модальное окно */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        border-radius: 1rem;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+        animation: modalSlideIn 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-gray);
+        transition: color 0.3s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text-light);
+    }
+
+    .modal-header {
+        padding: 2rem;
+        text-align: center;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .modal-header.regular { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+    .modal-header.silver { background: linear-gradient(135deg, #374151, #4b5563); }
+    .modal-header.gold { background: linear-gradient(135deg, #b45309, #d97706); }
+
+    .modal-icon {
+        font-size: 4rem;
+    }
+
+    .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .modal-body h3 {
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+
+    .modal-body p {
+        color: var(--text-gray);
+        margin-bottom: 1rem;
+    }
+
+    .certificate-details {
+        background: rgba(99, 102, 241, 0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        text-align: left;
+    }
+
+    .certificate-details p {
+        margin: 0.5rem 0;
+        font-size: 0.875rem;
+    }
+
+    .download-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-gray);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .certificates-container {
+            padding: 1rem;
+        }
+        
+        .certificates-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .certificates-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="certificates-container">
+    <div class="certificates-header">
+        <h1>🏆 Мои сертификаты</h1>
+        <p>Сертификаты, полученные за прохождение курсов CodeQuest</p>
+        
+        <div class="certificate-stats">
+            <div class="stat-card">
+                <span class="stat-number regular" id="regularCount">0</span>
+                <span class="stat-label">Обычные</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number silver" id="silverCount">0</span>
+                <span class="stat-label">Серебряные</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number gold" id="goldCount">0</span>
+                <span class="stat-label">Золотые</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="regular">Обычные</button>
+        <button class="filter-btn" data-filter="silver">Серебряные</button>
+        <button class="filter-btn" data-filter="gold">Золотые</button>
+    </div>
+    
+    <div class="certificates-grid" id="certificatesGrid">
+        <!-- Сертификаты будут загружены сюда -->
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div id="certModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div id="modalHeader" class="modal-header">
+            <div class="modal-icon"></div>
+            <div class="certificate-level" id="modalLevel"></div>
+        </div>
+        <div class="modal-body">
+            <h3 id="modalTitle"></h3>
+            <p id="modalDescription"></p>
+            <div class="certificate-details" id="modalDetails"></div>
+            <button class="download-btn" id="downloadCertBtn">📥 Скачать сертификат (PDF)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== Данные сертификатов ==========
+    const certificatesData = [
+        {
+            id: "CERT-001",
+            level: "regular",
+            title: "Основы Python",
+            description: "Изучение основ программирования на Python: переменные, циклы, функции, работа со списками и словарями.",
+            date: "2024-01-15",
+            score: 85,
+            duration: "40 часов"
+        },
+        {
+            id: "CERT-002",
+            level: "regular",
+            title: "Введение в HTML/CSS",
+            description: "Создание современных веб-страниц с использованием HTML5 и CSS3, адаптивная верстка.",
+            date: "2024-02-10",
+            score: 92,
+            duration: "35 часов"
+        },
+        {
+            id: "CERT-003",
+            level: "silver",
+            title: "JavaScript для начинающих",
+            description: "Изучение основ JavaScript: переменные, функции, DOM манипуляции, обработка событий.",
+            date: "2024-03-20",
+            score: 88,
+            duration: "50 часов"
+        },
+        {
+            id: "CERT-004",
+            level: "silver",
+            title: "React.js - продвинутый уровень",
+            description: "Создание сложных приложений на React: хуки, контекст, роутинг, управление состоянием.",
+            date: "2024-04-05",
+            score: 91,
+            duration: "60 часов"
+        },
+        {
+            id: "CERT-005",
+            level: "gold",
+            title: "Fullstack разработка",
+            description: "Полный цикл разработки веб-приложений: Node.js, Express, MongoDB, React, деплой.",
+            date: "2024-05-12",
+            score: 96,
+            duration: "120 часов"
+        },
+        {
+            id: "CERT-006",
+            level: "gold",
+            title: "DevOps инженерия",
+            description: "Docker, Kubernetes, CI/CD пайплайны, мониторинг и логирование, облачные технологии.",
+            date: "2024-06-18",
+            score: 94,
+            duration: "100 часов"
+        },
+        {
+            id: "CERT-007",
+            level: "silver",
+            title: "TypeScript",
+            description: "Типизация в JavaScript, интерфейсы, дженерики, интеграция с React.",
+            date: "2024-07-22",
+            score: 87,
+            duration: "45 часов"
+        },
+        {
+            id: "CERT-008",
+            level: "gold",
+            title: "Системная архитектура",
+            description: "Проектирование масштабируемых систем, микросервисы, паттерны проектирования.",
+            date: "2024-08-30",
+            score: 95,
+            duration: "80 часов"
+        }
+    ];
+    
+    // Состояние фильтра
+    let currentFilter = "all";
+    let currentCertificate = null;
+    
+    // Функция для форматирования даты
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    // Функция для получения иконки уровня
+    function getLevelIcon(level) {
+        switch(level) {
+            case 'regular': return '📘';
+            case 'silver': return '🥈';
+            case 'gold': return '🥇';
+            default: return '📜';
+        }
+    }
+    
+    // Функция для получения названия уровня
+    function getLevelName(level) {
+        switch(level) {
+            case 'regular': return 'Обычный сертификат';
+            case 'silver': return 'Серебряный сертификат';
+            case 'gold': return 'Золотой сертификат';
+            default: return 'Сертификат';
+        }
+    }
+    
+    // Функция для обновления статистики
+    function updateStats() {
+        const regularCount = certificatesData.filter(c => c.level === 'regular').length;
+        const silverCount = certificatesData.filter(c => c.level === 'silver').length;
+        const goldCount = certificatesData.filter(c => c.level === 'gold').length;
+        
+        document.getElementById('regularCount').textContent = regularCount;
+        document.getElementById('silverCount').textContent = silverCount;
+        document.getElementById('goldCount').textContent = goldCount;
+    }
+    
+    // Функция для отображения сертификатов
+    function renderCertificates() {
+        const grid = document.getElementById('certificatesGrid');
+        let filteredData = certificatesData;
+        
+        if (currentFilter !== 'all') {
+            filteredData = certificatesData.filter(cert => cert.level === currentFilter);
+        }
+        
+        if (filteredData.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>Нет сертификатов данного уровня</p>
+                    <p style="font-size: 0.875rem;">Пройдите курсы, чтобы получить сертификаты!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        grid.innerHTML = filteredData.map(cert => `
+            <div class="certificate-card" data-level="${cert.level}" data-id="${cert.id}">
+                <div class="certificate-header ${cert.level}">
+                    <div class="certificate-icon">${getLevelIcon(cert.level)}</div>
+                    <div class="certificate-level">${getLevelName(cert.level)}</div>
+                </div>
+                <div class="certificate-body">
+                    <h3 class="course-title">${cert.title}</h3>
+                    <p class="course-description">${cert.description.substring(0, 80)}${cert.description.length > 80 ? '...' : ''}</p>
+                    <div class="certificate-meta">
+                        <span class="date">📅 ${formatDate(cert.date)}</span>
+                        <span class="certificate-id">${cert.id}</span>
+                    </div>
+                    <button class="view-btn" onclick="showCertificateModal('${cert.id}')">🔍 Подробнее</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Функция для показа модального окна
+    window.showCertificateModal = function(certId) {
+        const certificate = certificatesData.find(cert => cert.id === certId);
+        if (!certificate) return;
+        
+        currentCertificate = certificate;
+        const modal = document.getElementById('certModal');
+        const modalHeader = document.getElementById('modalHeader');
+        const modalIcon = document.querySelector('#modalHeader .modal-icon');
+        const modalLevel = document.getElementById('modalLevel');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalDetails = document.getElementById('modalDetails');
+        
+        // Устанавливаем класс для заголовка
+        modalHeader.className = `modal-header ${certificate.level}`;
+        modalIcon.innerHTML = getLevelIcon(certificate.level);
+        modalLevel.textContent = getLevelName(certificate.level);
+        modalTitle.textContent = certificate.title;
+        modalDescription.textContent = certificate.description;
+        
+        modalDetails.innerHTML = `
+            <p><strong>📋 ID сертификата:</strong> ${certificate.id}</p>
+            <p><strong>📅 Дата получения:</strong> ${formatDate(certificate.date)}</p>
+            <p><strong>⭐ Результат:</strong> ${certificate.score}%</p>
+            <p><strong>⏱️ Длительность курса:</strong> ${certificate.duration}</p>
+            <p><strong>🏆 Уровень:</strong> ${getLevelName(certificate.level)}</p>
+        `;
+        
+        modal.classList.add('active');
+    };
+    
+    // Функция закрытия модального окна
+    function closeModal() {
+        const modal = document.getElementById('certModal');
+        modal.classList.remove('active');
+        currentCertificate = null;
+    }
+    
+    // Функция скачивания сертификата
+    function downloadCertificate() {
+        if (!currentCertificate) return;
+        
+        // Создаем содержимое для скачивания
+        const content = `
+            ═══════════════════════════════════════
+                   CODEQUEST - СЕРТИФИКАТ
+            ═══════════════════════════════════════
+            
+            Настоящим подтверждается, что
+            
+            ${currentCertificate.title}
+            
+            успешно завершил(а) курс:
+            "${currentCertificate.title}"
+            
+            📊 Результат: ${currentCertificate.score}%
+            📅 Дата: ${formatDate(currentCertificate.date)}
+            🏆 Уровень: ${getLevelName(currentCertificate.level)}
+            📋 ID: ${currentCertificate.id}
+            ⏱️ Длительность: ${currentCertificate.duration}
+            
+            ═══════════════════════════════════════
+            CodeQuest - Ваш путь в мир IT!
+            ═══════════════════════════════════════
+        `;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `certificate_${currentCertificate.id}_${currentCertificate.title.replace(/\s+/g, '_')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Показываем уведомление
+        alert(`✅ Сертификат "${currentCertificate.title}" сохранён!`);
+    }
+    
+    // Настройка фильтров
+    function setupFilters() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderCertificates();
+            });
+        });
+    }
+    
+    // Инициализация страницы
+    function init() {
+        updateStats();
+        renderCertificates();
+        setupFilters();
+        
+        // Закрытие модального окна
+        const modal = document.getElementById('certModal');
+        const closeBtn = document.querySelector('.modal-close');
+        const downloadBtn = document.getElementById('downloadCertBtn');
+        
+        closeBtn.addEventListener('click', closeModal);
+        downloadBtn.addEventListener('click', downloadCertificate);
+        
+        // Закрытие по клику вне модального окна
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Запуск после загрузки DOM
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+{% endblock %}

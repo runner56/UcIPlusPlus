@@ -607,6 +607,16 @@ def game_keyboard():
     return render_template('games/keyboard.html')
 
 
+# ============================================================
+# Управление прогрессом
+# ============================================================
+@app.route('/student/sertificates')
+@login_required
+@role_required('student')
+def sertificates():
+    return render_template('student/setrificate.html')
+
+
 # ========== УПРАВЛЕНИЕ МОДУЛЯМИ (АДМИН) ==========
 @app.route('/admin/modules')
 @login_required
