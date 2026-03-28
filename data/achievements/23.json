@@ -1,0 +1,42 @@
+[
+    {
+        "title": "Первый шаг сделан",
+        "description": "Пройдите любой модуль полностью",
+        "icon": "fas fa-rocket",
+        "status": "received",
+        "progress": 100,
+        "progress_label": null
+    },
+    {
+        "title": "Новичок в тестах",
+        "description": "Пройдите 5 тестовых заданий",
+        "icon": "fas fa-file-alt",
+        "status": "received",
+        "progress": 100,
+        "progress_label": null
+    },
+    {
+        "title": "Продвинутый тестировщик",
+        "description": "Пройдите 10 тестовых заданий",
+        "icon": "fas fa-shield-alt",
+        "status": "in_progress",
+        "progress": 20,
+        "progress_label": "6 из 10"
+    },
+    {
+        "title": "Мастер тестового дела",
+        "description": "Пройдите все доступные вам тесты",
+        "icon": "fas fa-crown",
+        "status": "locked",
+        "progress": 20,
+        "progress_label": "Прогресс: 20%"
+    },
+    {
+        "title": "Любитель практики",
+        "description": "Выполните 1 практическое задание",
+        "icon": "fas fa-laptop-code",
+        "status": "received",
+        "progress": 100,
+        "progress_label": null
+    }
+]
