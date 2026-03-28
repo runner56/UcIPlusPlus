@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Магазин | CodeQuest{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок и баланс -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-store text-primary"></i> Магазин кастомизации
+            </h1>
+            <p class="text-muted">Укрась свой профиль уникальными предметами</p>
+        </div>
+        <div class="text-end">
+            <div class="card bg-warning bg-opacity-10 border-warning shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-coins text-warning"></i> 
+                        <span id="user-balance">{{ current_user.itcoins }}</span> ITCoins
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сетка товаров -->
+    <div class="row g-4">
+        
+        <!-- Товар 1: Обводка "Neon Code" -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm shop-item" style="border-radius: 0;" data-price="150" data-name="Неоновая обводка">
+                <div class="card-body d-flex flex-column">
+                    <!-- Превью товара -->
+                    <div class="bg-light p-4 d-flex justify-content-center align-items-center mb-3" style="border-radius: 0; height: 200px;">
+                        <!-- Аватарка 120x120 с обводкой -->
+                        <div class="avatar-preview" style="width: 120px; height: 120px; border-radius: 50%; background: #ccc; border: 6px solid #00ff41; box-shadow: 0 0 15px #00ff41;">
+                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                    </div>
+                    
+                    <span class="badge bg-dark mb-2 align-self-start">Обводка аватара</span>
+                    <h5 class="card-title fw-bold">Neon Code</h5>
+                    <p class="card-text text-muted small flex-grow-1">Яркая зеленая рамка с эффектом свечения в стиле Matrix. Идеально для программистов.</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                        <span class="fw-bold fs-5"><i class="fas fa-coins text-warning"></i> 150</span>
+                        <button class="btn btn-primary buy-btn" style="border-radius: 0;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Товар 2: Фон "Школьная доска" -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm shop-item" style="border-radius: 0;" data-price="200" data-name="Фон Школьная доска">
+                <div class="card-body d-flex flex-column">
+                    <!-- Превью фона -->
+                    <div class="profile-bg-preview p-3 mb-3" style="height: 200px; background-color: #2d3436; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 20px 20px; border: 1px solid #ddd;">
+                        <div class="text-center text-white mt-4">
+                            <i class="fas fa-user-circle fa-3x mb-2" style="opacity: 0.8;"></i>
+                            <div class="fw-bold">Ваш Профиль</div>
+                            <small style="font-family: 'Courier New', Courier, monospace;">print("Hello World")</small>
+                        </div>
+                    </div>
+
+                    <span class="badge bg-success mb-2 align-self-start">Фон профиля</span>
+                    <h5 class="card-title fw-bold">Школьная доска</h5>
+                    <p class="card-text text-muted small flex-grow-1">Классический фон под школьную маркерную доску. Добавьте свои "надписи" в профиль.</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                        <span class="fw-bold fs-5"><i class="fas fa-coins text-warning"></i> 200</span>
+                        <button class="btn btn-primary buy-btn" style="border-radius: 0;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Товар 3: Обводка "Cyber Blue" -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm shop-item" style="border-radius: 0;" data-price="250" data-name="Синяя кибер-обводка">
+                <div class="card-body d-flex flex-column">
+                    <div class="bg-light p-4 d-flex justify-content-center align-items-center mb-3" style="border-radius: 0; height: 200px;">
+                        <!-- Аватарка 120x120 с обводкой -->
+                        <div class="avatar-preview" style="width: 120px; height: 120px; border-radius: 50%; background: #ccc; border: 5px solid #0984e3; box-shadow: 0 0 0 5px #74b9ff, 0 0 20px #0984e3;">
+                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                    </div>
+
+                    <span class="badge bg-dark mb-2 align-self-start">Обводка аватара</span>
+                    <h5 class="card-title fw-bold">Cyber Blue</h5>
+                    <p class="card-text text-muted small flex-grow-1">Стильная синяя рамка с двойным эффектом. Технологичный дизайн для IT-энтузиастов.</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                        <span class="fw-bold fs-5"><i class="fas fa-coins text-warning"></i> 250</span>
+                        <button class="btn btn-primary buy-btn" style="border-radius: 0;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Товар 4: Фон "Pythonista" -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm shop-item" style="border-radius: 0;" data-price="300" data-name="Фон Pythonista">
+                <div class="card-body d-flex flex-column">
+                    <div class="profile-bg-preview p-3 mb-3 d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #306998 50%, #FFD43B 50%); border: 1px solid #ddd;">
+                        <div class="text-center">
+                            <i class="fab fa-python fa-4x text-white" style="text-shadow: 2px 2px 0px rgba(0,0,0,0.2);"></i>
+                        </div>
+                    </div>
+
+                    <span class="badge bg-success mb-2 align-self-start">Фон профиля</span>
+                    <h5 class="card-title fw-bold">Pythonista</h5>
+                    <p class="card-text text-muted small flex-grow-1">Официальная раскраска языка Python. Покажи всем свой любимый язык программирования.</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                        <span class="fw-bold fs-5"><i class="fas fa-coins text-warning"></i> 300</span>
+                        <button class="btn btn-primary buy-btn" style="border-radius: 0;">
+                            <i class="fas fa-shopping-cart"></i> Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Товар 5: Обводка "Gold Debugger" -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm shop-item" style="border-radius: 0;" data-price="500" data-name="Золотая обводка">
+                <div class="card-body d-flex flex-column">
+                    <div class="bg-light p-4 d-flex justify-content-center align-items-center mb-3" style="border-radius: 0; height: 200px;">
+                        <!-- Аватарка 120x120 с обводкой -->
+                        <div class="avatar-preview" style="width: 120px; height: 120px; border-radius: 50%; background: #ccc; border: 6px solid #f1c40f; box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); animation: gold-spin 3s linear infinite;">
+                             <!-- Простая анимация градиента через CSS ниже -->
+                            <img src="{{ url_for('static', filename=current_user.get_photo_url()) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                    </div>
+
+                    <span class="badge bg-warning text-dark mb-2 align-self-start">Элитная обводка</span>
+                    <h5 class="card-title fw-bold">Gold Debugger</h5>
+                    <p class="card-text text-muted small flex-grow-1">Роскошная золотая рамка для мастеров кодинга. Символ высокого статуса на платформе.</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                        <span class="fw-bold fs-5"><i class="fas fa-coins text-warning"></i> 500</span>
+                        <button class="btn btn-warning text-dark buy-btn" style="border-radius: 0;">
+                            <i class="fas fa-gem"></i> Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Анимация для золотой рамки */
+    @keyframes gold-spin {
+        0% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); }
+        50% { box-shadow: 0 0 40px rgba(241, 196, 15, 0.9); }
+        100% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); }
+    }
+
+    /* Эффект наведения для карточек */
+    .shop-item {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .shop-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+
+    /* Стиль для уже купленных товаров (добавляется через JS) */
+    .shop-item.owned {
+        opacity: 0.6;
+        background-color: #f8f9fa;
+    }
+    .shop-item.owned .buy-btn {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        cursor: default;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Получаем текущий баланс из HTML
+        let balanceElement = document.getElementById('user-balance');
+        let currentBalance = parseInt(balanceElement.innerText);
+
+        // Обработчик клика на кнопку покупки
+        document.querySelectorAll('.buy-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const card = this.closest('.shop-item');
+                const price = parseInt(card.dataset.price);
+                const name = card.dataset.name;
+
+                // Проверяем, не куплено ли уже
+                if (card.classList.contains('owned')) {
+                    return;
+                }
+
+                // Проверка баланса
+                if (currentBalance >= price) {
+                    // Списываем средства
+                    currentBalance -= price;
+                    balanceElement.innerText = currentBalance;
+                    
+                    // Меняем состояние кнопки и карточки
+                    this.innerHTML = '<i class="fas fa-check"></i> Куплено';
+                    card.classList.add('owned');
+                    
+                    // Визуальное уведомление (можно заменить на Bootstrap Toast)
+                    alert(`Вы успешно приобрели: "${name}" за ${price} ITCoins!`);
+
+                    // Здесь можно добавить AJAX запрос к бэкенду для сохранения
+                    // fetch('/api/shop/buy', { method: 'POST', body: JSON.stringify({item_id: ...}) });
+                } else {
+                    // Если денег нет
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-danger');
+                    this.innerHTML = 'Недостаточно средств';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-primary');
+                        this.innerHTML = '<i class="fas fa-shopping-cart"></i> Купить';
+                    }, 1500);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
