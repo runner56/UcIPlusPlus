@@ -1,0 +1,97 @@
+{
+    "items": [
+        {
+            "id": 1,
+            "name": "Подписка CodeQuest Pro",
+            "description": "Доступ к расширенным курсам и персональному наставнику на 1 месяц",
+            "price": 500,
+            "category": "subscription",
+            "icon": "fa-star",
+            "color": "purple",
+            "duration": "1 месяц",
+            "featured": true
+        },
+        {
+            "id": 2,
+            "name": "Подписка CodeQuest Premium",
+            "description": "Доступ ко всем курсам + помощь наставника + ранний доступ к новым материалам",
+            "price": 1200,
+            "category": "subscription",
+            "icon": "fa-crown",
+            "color": "gold",
+            "duration": "3 месяца",
+            "featured": true
+        },
+        {
+            "id": 3,
+            "name": "Игровая мышь Logitech G502",
+            "description": "Высокоточная игровая мышь с 11 программируемыми кнопками",
+            "price": 300,
+            "category": "merch",
+            "icon": "fa-mouse",
+            "color": "dark",
+            "stock": 10
+        },
+        {
+            "id": 4,
+            "name": "Механическая клавиатура",
+            "description": "RGB подсветка, механические переключатели, идеально для программирования",
+            "price": 450,
+            "category": "merch",
+            "icon": "fa-keyboard",
+            "color": "dark",
+            "stock": 5
+        },
+        {
+            "id": 5,
+            "name": "Футболка CodeQuest",
+            "description": "Качественная хлопковая футболка с логотипом i++",
+            "price": 150,
+            "category": "merch",
+            "icon": "fa-tshirt",
+            "color": "primary",
+            "sizes": ["S", "M", "L", "XL"]
+        },
+        {
+            "id": 6,
+            "name": "Кружка CodeQuest",
+            "description": "Керамическая кружка с термоэффектом",
+            "price": 80,
+            "category": "merch",
+            "icon": "fa-mug-hot",
+            "color": "warning"
+        },
+        {
+            "id": 7,
+            "name": "Sony PlayStation 5",
+            "description": "Игровая консоль нового поколения. Мощный процессор, SSD накопитель, DualSense контроллер",
+            "price": 5000,
+            "category": "prize",
+            "icon": "fa-gamepad",
+            "color": "danger",
+            "featured": true,
+            "stock": 3
+        },
+        {
+            "id": 8,
+            "name": "Наушники Sony WH-1000XM5",
+            "description": "Беспроводные наушники с шумоподавлением",
+            "price": 800,
+            "category": "merch",
+            "icon": "fa-headphones",
+            "color": "dark",
+            "stock": 8
+        },
+        {
+            "id": 9,
+            "name": "Годовой доступ CodeQuest Ultimate",
+            "description": "Безлимитный доступ ко всем курсам + персональный наставник + приоритетная поддержка",
+            "price": 3500,
+            "category": "subscription",
+            "icon": "fa-gem",
+            "color": "primary",
+            "duration": "12 месяцев",
+            "featured": true
+        }
+    ]
+}

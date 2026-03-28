@@ -683,6 +683,44 @@ def store():
     return render_template('student/store.html')
 
 
+# ========== МАГАЗИН ==========
+
+@app.route('/shop/buy/<int:item_id>', methods=['POST'])
+@login_required
+def shop_buy(item_id):
+    """Покупка товара"""
+    import json
+    
+    # Получаем данные о товаре (временно жестко задаем)
+    items_data = {
+        1: {"name": "Подписка CodeQuest Pro", "price": 500},
+        2: {"name": "Подписка CodeQuest Premium", "price": 1200},
+        3: {"name": "Игровая мышь Logitech G502", "price": 300},
+        4: {"name": "Механическая клавиатура", "price": 450},
+        5: {"name": "Футболка CodeQuest", "price": 150},
+        6: {"name": "Кружка CodeQuest", "price": 80},
+        7: {"name": "Sony PlayStation 5", "price": 5000},
+        8: {"name": "Наушники Sony WH-1000XM5", "price": 800},
+        9: {"name": "Годовой доступ CodeQuest Ultimate", "price": 3500}
+    }
+    
+    item = items_data.get(item_id)
+    if not item:
+        return jsonify({'success': False, 'message': 'Товар не найден'}), 404
+    
+    if current_user.itcoins < item['price']:
+        return jsonify({'success': False, 'message': f'Недостаточно ITCoins! Нужно {item["price"]} ITCoins'}), 400
+    
+    # Списываем ITCoins
+    current_user.itcoins -= item['price']
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'🎉 Поздравляем! Вы купили {item["name"]} за {item["price"]} ITCoins!',
+        'new_balance': current_user.itcoins
+    })
+
 # ========== УПРАВЛЕНИЕ МОДУЛЯМИ (АДМИН) ==========
 @app.route('/admin/modules')
 @login_required
