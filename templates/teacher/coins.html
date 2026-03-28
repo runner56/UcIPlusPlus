@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Начисление ITCoins | CodeQuest{% endblock %}
+
+{% block extra_css %}
+<style>
+    .coins-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .coins-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .coins-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+    }
+    
+    .student-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+    }
+    
+    .coins-badge {
+        font-size: 1.1rem;
+        font-weight: bold;
+        background: #ffc107;
+        color: #333;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        display: inline-block;
+    }
+    
+    .btn-coins {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        border: none;
+        color: #333;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-coins:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        color: #333;
+    }
+    
+    .task-badge {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .input-group-custom {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .input-group-custom input {
+        flex: 1;
+        border-radius: 50px;
+        border: 2px solid #e0e0e0;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group-custom input:focus {
+        border-color: #ffc107;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    }
+    
+    .quick-amount {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .quick-amount button {
+        background: #f5f5f5;
+        border: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .quick-amount button:hover {
+        background: #ffc107;
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-coins text-warning"></i> Начисление ITCoins
+            </h1>
+            <p class="text-muted">Поощряйте учеников за успехи в обучении</p>
+        </div>
+        <div>
+            <span class="badge bg-success fs-6">
+                <i class="fas fa-users"></i> Учеников: {{ students|length }}
+            </span>
+        </div>
+    </div>
+
+    {% if students %}
+    <div class="row g-4">
+        {% for student in students %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card coins-card shadow-sm h-100">
+                <div class="coins-header">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename=student.user.get_photo_url()) }}" 
+                             class="student-avatar me-3"
+                             onerror="this.src='{{ url_for('static', filename='uploads/users/default_avatar.png') }}'">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{{ student.user.username }}</h5>
+                            <small>{{ student.user.email }}</small>
+                        </div>
+                        <div class="coins-badge">
+                            <i class="fas fa-coins"></i> {{ student.itcoins }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="fas fa-chalkboard text-primary"></i> Группа:</span>
+                            <strong>{{ student.group.title }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-tasks text-success"></i> Выполнено заданий:</span>
+                            <span class="task-badge">{{ student.completed_tasks }}</span>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('teacher_add_coins') }}" method="POST">
+                        <input type="hidden" name="student_id" value="{{ student.user.id }}">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Сумма начисления</label>
+                            <div class="input-group-custom">
+                                <input type="number" 
+                                       name="amount" 
+                                       class="form-control" 
+                                       placeholder="Количество ITCoins"
+                                       min="1"
+                                       max="1000"
+                                       required>
+                                <button type="submit" class="btn btn-coins">
+                                    <i class="fas fa-gift"></i> Начислить
+                                </button>
+                            </div>
+                            <div class="quick-amount">
+                                <button type="button" onclick="setAmount(this, 10)">+10</button>
+                                <button type="button" onclick="setAmount(this, 50)">+50</button>
+                                <button type="button" onclick="setAmount(this, 100)">+100</button>
+                                <button type="button" onclick="setAmount(this, 500)">+500</button>
+                            </div>
+                        </div>
+                    </form>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Начисляйте коины за отличные работы, активность на уроках и выполненные задания
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+            <h5>У вас пока нет учеников</h5>
+            <p class="text-muted">Добавьте учеников в группы, чтобы начислять им ITCoins</p>
+            <a href="{{ url_for('teacher_groups') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Перейти к группам
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function setAmount(button, amount) {
+        const input = button.closest('.mb-2').querySelector('input[name="amount"]');
+        if (input) {
+            input.value = amount;
+            input.focus();
+        }
+    }
+</script>
+{% endblock %}

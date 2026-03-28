@@ -611,6 +611,7 @@ def delete_user(user_id):
 # ============================================================
 # Управление ИГРАМИ
 # ============================================================
+
 @app.route('/game_keyboard')
 @login_required
 @role_required('student')
@@ -1078,6 +1079,95 @@ def admin_delete_task(task_id):
     flash('Задание удалено', 'success')
     return redirect(url_for('admin_lesson_detail', lesson_id=lesson_id))
 
+
+
+# ========== УПРАВЛЕНИЕ КОИНАМИ (УЧИТЕЛЬ) ==========
+
+@app.route('/teacher/coins')
+@login_required
+@role_required('teacher')
+def teacher_coins():
+    """Страница начисления коинов ученикам"""
+    # Получаем все группы учителя
+    groups = Group.query.filter_by(created_by=current_user.id).all()
+    
+    # Собираем всех учеников из всех групп
+    students = []
+    for group in groups:
+        for student in group.get_students():
+            # Проверяем, не добавлен ли уже этот ученик
+            existing = next((s for s in students if s['user'].id == student.id), None)
+            if not existing:
+                # Получаем прогресс по модулю группы
+                progress = ProgressModule.query.filter_by(
+                    user_id=student.id,
+                    module_id=group.module_id
+                ).first()
+                
+                # Получаем количество выполненных заданий
+                completed_tasks = 0
+                if progress:
+                    for lesson_data in progress.progress.get('lessons', {}).values():
+                        for task_data in lesson_data.get('tasks', {}).values():
+                            if task_data.get('completed', False):
+                                completed_tasks += 1
+                
+                students.append({
+                    'user': student,
+                    'group': group,
+                    'completed_tasks': completed_tasks,
+                    'itcoins': student.itcoins
+                })
+    
+    return render_template('teacher/coins.html', students=students, groups=groups)
+
+
+@app.route('/teacher/coins/add', methods=['POST'])
+@login_required
+@role_required('teacher')
+def teacher_add_coins():
+    """Начисление коинов ученику"""
+    student_id = request.form.get('student_id')
+    amount = request.form.get('amount')
+    reason = request.form.get('reason', '')
+    
+    if not student_id or not amount:
+        flash('Не указан ученик или сумма коинов', 'danger')
+        return redirect(url_for('teacher_coins'))
+    
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            flash('Сумма коинов должна быть положительной', 'danger')
+            return redirect(url_for('teacher_coins'))
+        if amount > 1000:
+            flash('Максимальная сумма для начисления - 1000 ITCoins', 'danger')
+            return redirect(url_for('teacher_coins'))
+    except ValueError:
+        flash('Неверная сумма коинов', 'danger')
+        return redirect(url_for('teacher_coins'))
+    
+    student = User.query.get_or_404(student_id)
+    
+    # Проверяем, что ученик действительно в группе учителя
+    groups = Group.query.filter_by(created_by=current_user.id).all()
+    student_in_group = False
+    for group in groups:
+        if group.has_student(student):
+            student_in_group = True
+            break
+    
+    if not student_in_group:
+        flash('Этот ученик не состоит в ваших группах', 'danger')
+        return redirect(url_for('teacher_coins'))
+    
+    # Начисляем коины
+    student.itcoins += amount
+    db.session.commit()
+    
+    flash(f'Начислено {amount} ITCoins ученику {student.username}!', 'success')
+    
+    return redirect(url_for('teacher_coins'))
 
 # ========== УПРАВЛЕНИЕ ГРУППАМИ (УЧИТЕЛЬ/АДМИН) ==========
 @app.route('/teacher/dashboard')

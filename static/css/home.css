@@ -22,6 +22,22 @@
     opacity: 0.3;
 }
 
+/* Logo styles */
+.logo-svg {
+    transition: transform 0.3s ease;
+}
+
+.logo-svg:hover {
+    transform: scale(1.05);
+}
+.navbar-brand img {
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand img:hover {
+    transform: scale(1.05);
+}
+
 @keyframes moveGrid {
     0% {
         transform: translate(0, 0);
